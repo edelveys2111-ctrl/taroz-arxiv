@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avto Taroz</title>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, push, onValue, remove, query, orderByChild } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  // ============================================================
+  // 🔥 FIREBASE CONFIG — O'ZINGIZNING CONFIG'INGIZNI SHU YERGA
+  // Firebase Console → Project Settings → Your apps → Config
+  // ============================================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyAnswyuo5bclHyNq64_zaydPEFjfjcOeHg",
+    authDomain: "tarozi-arxiv-chek.firebaseapp.com",
+    databaseURL: "https://tarozi-arxiv-chek-default-rtdb.firebaseio.com",
+    projectId: "tarozi-arxiv-chek",
+    storageBucket: "tarozi-arxiv-chek.firebasestorage.app",
+    messagingSenderId: "120206177463",
+    appId: "1:120206177463:web:53bc9fc5c7d5a7aca5c932"
+  };
+  // ============================================================
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+  const REC_PATH = "tarozRecords";
+
+  // Global holatlar
+  let allRecords = {}; // { fbKey: record }
+
+  // ── Firebase'dan real-time o'qish ──
+  const recRef = query(ref(db, REC_PATH), orderByChild("ts"));
+  onValue(recRef, (snap) => {
+    allRecords = {};
+    if (snap.exists()) {
+      snap.forEach(child => {
+        allRecords[child.key] = { ...child.val(), _key: child.key };
+      });
+    }
+    updC();
+    render();
+  });
+
+  // ── Saqlash ──
+  window.saveR = async function() {
+    const m = document.getElementById("fm").value.trim().toUpperCase();
+    const b = parseFloat(document.getElementById("fb").value);
+    const t = parseFloat(document.getElementById("ft").value) || 0;
+    if (!m) { shk("fm"); return; }
+    if (!b || b <= 0) { shk("fb"); return; }
+
+    const vRaw = document.getElementById("fv").value || new Date().toISOString().slice(0,16);
+    const ts   = new Date(vRaw).getTime();
+
+    const rec = { ts, v: vRaw, m, b, t, n: Math.max(0, b - t) };
+
+    try {
+      const newRef = await push(ref(db, REC_PATH), rec);
+      rec._key = newRef.key;
+      rec.id   = ts;
+      clrForm();
+      printChek(rec);
+      toast("Saqlandi! Chek chop etilmoqda...");
+    } catch(e) {
+      alert("Firebase xatosi: " + e.message);
+    }
+  };
+
+  // ── O'chirish ──
+  window.delR = async function(key) {
+    if (!confirm("Bu yozuvni o'chirmoqchimisiz?")) return;
+    try {
+      await remove(ref(db, REC_PATH + "/" + key));
+      toast("O'chirildi");
+    } catch(e) {
+      alert("O'chirishda xato: " + e.message);
+    }
+  };
+
+  // ── Render ──
+  window.render = function() {
+    const q  = (document.getElementById("qs").value || "").toLowerCase();
+    const d  = document.getElementById("qd").value;
+    const MN = "font-family:'Consolas','Courier New',monospace";
+
+    // Massivga aylantir va ts bo'yicha kamayib sort
+    let arr = Object.values(allRecords).sort((a, b) => b.ts - a.ts);
+    let f   = arr.filter(r =>
+      (!q || r.m.toLowerCase().includes(q)) &&
+      (!d || r.v.startsWith(d))
+    );
+
+    const tb = document.getElementById("tb");
+    const tf = document.getElementById("tf");
+
+    if (!f.length) {
+      tb.innerHTML = "<tr class='erow'><td colspan='7'>"
+        + "<div class='ei'>📋</div>"
+        + "<div class='et'>" + (arr.length ? "Natija topilmadi" : "Yozuvlar yo'q") + "</div>"
+        + "<div class='ed'>" + (arr.length ? "Filtrni o'zgartiring" : "Chap tomondagi forma orqali qo'shing") + "</div>"
+        + "</td></tr>";
+      tf.innerHTML = "";
+      return;
+    }
+
+    tb.innerHTML = f.map((r, i) =>
+      "<tr>"
+      + "<td class='tm'>" + (i+1) + "</td>"
+      + "<td class='tm' style='white-space:nowrap;font-size:12px'>" + fd(r.v) + "</td>"
+      + "<td class='tb2'>" + r.m + "</td>"
+      + "<td style='text-align:right;" + MN + "'>" + r.b.toLocaleString() + "</td>"
+      + "<td style='text-align:right;" + MN + ";color:var(--mu)'>" + r.t.toLocaleString() + "</td>"
+      + "<td class='tn' style='text-align:right'>" + r.n.toLocaleString() + "</td>"
+      + "<td style='display:flex;gap:4px;padding:8px 10px'>"
+        + "<button class='sm' onclick='reprint(\"" + r._key + "\")' title='Chekni qayta chop et'>🖨</button>"
+        + "<button class='sm smr' onclick='delR(\"" + r._key + "\")'>✕</button>"
+      + "</td>"
+      + "</tr>"
+    ).join("");
+
+    const tB = f.reduce((s,r) => s+r.b, 0);
+    const tT = f.reduce((s,r) => s+r.t, 0);
+    const tN = f.reduce((s,r) => s+r.n, 0);
+    tf.innerHTML = "<tr class='tfr'>"
+      + "<td colspan='3' style='text-align:right;padding-right:10px'>Jami (" + f.length + " ta):</td>"
+      + "<td style='text-align:right;" + MN + "'>" + tB.toLocaleString() + "</td>"
+      + "<td style='text-align:right;" + MN + "'>" + tT.toLocaleString() + "</td>"
+      + "<td class='tfa' style='text-align:right'>" + tN.toLocaleString() + "</td>"
+      + "<td></td></tr>";
+  };
+
+  // ── Hisobot ──
+  window.genR = function() {
+    const fr = document.getElementById("rf").value;
+    const to = document.getElementById("rt").value;
+    if (!fr || !to) { alert("Sanalarni tanlang!"); return; }
+
+    const MN  = "font-family:'Consolas','Courier New',monospace";
+    const arr = Object.values(allRecords).sort((a,b) => a.ts - b.ts);
+    const d   = arr.filter(r => { const x = r.v.slice(0,10); return x >= fr && x <= to; });
+
+    document.getElementById("rs").style.display = "grid";
+    if (!d.length) {
+      document.getElementById("rtw").style.display = "none";
+      document.getElementById("re").style.display  = "block";
+      ["rc","rbr","rtr","rn"].forEach(i => document.getElementById(i).textContent = "0");
+      return;
+    }
+    const tB = d.reduce((s,r)=>s+r.b,0);
+    const tT = d.reduce((s,r)=>s+r.t,0);
+    const tN = d.reduce((s,r)=>s+r.n,0);
+    document.getElementById("rc").textContent  = d.length;
+    document.getElementById("rbr").textContent = tB.toLocaleString();
+    document.getElementById("rtr").textContent = tT.toLocaleString();
+    document.getElementById("rn").textContent  = tN.toLocaleString();
+    document.getElementById("rtb").innerHTML = d.map((r,i)=>
+      "<tr>"
+      +"<td class='tm'>"+(i+1)+"</td>"
+      +"<td class='tm'>"+r.v.slice(0,10)+"</td>"
+      +"<td class='tb2'>"+r.m+"</td>"
+      +"<td style='text-align:right;"+MN+"'>"+r.b.toLocaleString()+"</td>"
+      +"<td style='text-align:right;"+MN+";color:var(--mu)'>"+r.t.toLocaleString()+"</td>"
+      +"<td class='tn' style='text-align:right'>"+r.n.toLocaleString()+"</td>"
+      +"</tr>"
+    ).join("");
+    document.getElementById("rtf").innerHTML = "<tr class='tfr'>"
+      +"<td colspan='3' style='text-align:right;padding-right:10px'>JAMI ("+d.length+" ta):</td>"
+      +"<td style='text-align:right;"+MN+"'>"+tB.toLocaleString()+"</td>"
+      +"<td style='text-align:right;"+MN+"'>"+tT.toLocaleString()+"</td>"
+      +"<td class='tfa' style='text-align:right'>"+tN.toLocaleString()+"</td>"
+      +"</tr>";
+    document.getElementById("re").style.display  = "none";
+    document.getElementById("rtw").style.display = "block";
+  };
+
+  // ── CSV export ──
+  window.expCSV = function() {
+    const arr = Object.values(allRecords).sort((a,b)=>b.ts-a.ts);
+    if (!arr.length) { alert("Eksport uchun yozuv yo'q!"); return; }
+    const h    = ["#","Sana","Mashina","Brutto(kg)","Tara(kg)","Netto(kg)"];
+    const rows = arr.map((r,i) => [i+1, r.v, r.m, r.b, r.t, r.n]);
+    const csv  = [h].concat(rows).map(r => r.map(c => '"'+c+'"').join(",")).join("\n");
+    const a    = document.createElement("a");
+    a.href     = URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}));
+    a.download = "taroz_"+new Date().toISOString().slice(0,10)+".csv";
+    a.click();
+  };
+
+  // ── Reprint ──
+  window.reprint = function(key) {
+    const rec = allRecords[key];
+    if (rec) printChek({ ...rec, id: rec.ts });
+  };
+
+  // ── Jami count ──
+  window.updC = function() {
+    const arr  = Object.values(allRecords);
+    const today = new Date().toISOString().slice(0,10);
+    document.getElementById("ac").textContent = arr.length;
+    document.getElementById("bc").textContent = arr.filter(r=>r.v.startsWith(today)).length;
+  };
+
+</script>
+
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+[data-theme="dark"]{
+  --bg:#0f1117;--sf:#161920;--card:#1c1f2e;--br:#252a3d;
+  --ac:#f0a500;--ac2:#c88000;--tx:#dde1ef;--mu:#5e6680;
+  --gr:#22a85a;--rd:#d63c2f;--bl:#2a7ab5;--th:#1c1f2e;--sh:rgba(0,0,0,.5);
+}
+[data-theme="light"]{
+  --bg:#e8ecf4;--sf:#ffffff;--card:#f3f5fb;--br:#cdd2e4;
+  --ac:#b06c00;--ac2:#8a5300;--tx:#1c2030;--mu:#7a829e;
+  --gr:#1a7a40;--rd:#b83226;--bl:#1f6090;--th:#eaecf5;--sh:rgba(0,0,0,.08);
+}
+html,body{height:100%}
+body{
+  font-family:"Segoe UI",system-ui,sans-serif;
+  background:var(--bg);color:var(--tx);
+  display:flex;flex-direction:column;height:100vh;overflow:hidden;
+  transition:background .3s,color .3s;
+}
+.topbar{
+  background:var(--sf);border-bottom:2px solid var(--ac);
+  display:flex;align-items:center;padding:0 24px;height:52px;
+  flex-shrink:0;gap:16px;box-shadow:0 2px 10px var(--sh);
+}
+.brand{display:flex;align-items:center;gap:10px;white-space:nowrap}
+.bi{font-size:22px}
+.bn{font-size:14px;font-weight:800;letter-spacing:1.5px;color:var(--ac);text-transform:uppercase}
+.bs{font-size:10px;color:var(--mu)}
+.tabs{display:flex;gap:2px;height:100%;align-items:flex-end}
+.tab{
+  padding:0 18px;height:40px;display:flex;align-items:center;
+  font-size:13px;font-weight:600;color:var(--mu);cursor:pointer;
+  border-bottom:3px solid transparent;border-radius:6px 6px 0 0;
+  transition:color .15s,border-color .15s;user-select:none;gap:6px;
+}
+.tab:hover{color:var(--tx)}
+.tab.on{color:var(--ac);border-bottom-color:var(--ac)}
+.sp{flex:1}
+.tr2{display:flex;align-items:center;gap:10px}
+.chip{
+  background:var(--card);border:1px solid var(--br);border-radius:20px;
+  padding:4px 13px;font-size:12px;color:var(--mu);white-space:nowrap;
+}
+.chip b{color:var(--ac)}
+/* Firebase holat indikatori */
+.fbdot{
+  width:8px;height:8px;border-radius:50%;background:#555;
+  display:inline-block;margin-right:5px;transition:background .3s;
+}
+.fbdot.ok{background:var(--gr)}
+.fbdot.err{background:var(--rd)}
+.thbtn{
+  width:36px;height:36px;border-radius:50%;border:1.5px solid var(--br);
+  background:var(--card);color:var(--tx);font-size:17px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .2s;
+}
+.thbtn:hover{border-color:var(--ac)}
+.main{display:flex;flex:1;overflow:hidden}
+.pnl{display:none;flex:1;overflow:hidden}
+.pnl.on{display:flex}
+#pk{flex-direction:row}
+.sidebar{
+  width:240px;min-width:240px;background:var(--sf);border-right:1px solid var(--br);
+  display:flex;flex-direction:column;overflow-y:auto;padding:20px 16px;gap:14px;
+}
+.stitle{
+  font-size:10px;font-weight:700;color:var(--mu);
+  text-transform:uppercase;letter-spacing:1px;
+  padding-bottom:7px;border-bottom:1px solid var(--br);
+}
+.fld label{
+  display:block;font-size:11px;color:var(--mu);font-weight:600;
+  margin-bottom:5px;text-transform:uppercase;letter-spacing:.6px;
+}
+.fld input{
+  width:100%;background:var(--card);border:1.5px solid var(--br);
+  border-radius:7px;padding:10px 12px;color:var(--tx);
+  font-size:14px;font-family:inherit;outline:none;transition:border-color .15s;
+}
+.fld input:focus{border-color:var(--ac)}
+.fld input::placeholder{color:var(--mu)}
+.nbox{
+  background:var(--card);border:2px solid var(--ac);
+  border-radius:10px;padding:14px 10px;text-align:center;
+}
+.nl{font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.nv{font-size:38px;font-weight:800;color:var(--ac);font-family:"Consolas","Courier New",monospace;line-height:1;}
+.nu{font-size:12px;color:var(--mu);margin-top:3px}
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:11px 14px;border-radius:8px;border:none;font-size:13px;
+  font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;width:100%;
+}
+.bp{background:var(--ac);color:#111}
+.bp:hover{background:var(--ac2)}
+.bg2{background:transparent;color:var(--mu);border:1px solid var(--br)}
+.bg2:hover{color:var(--tx);border-color:var(--tx)}
+.brow{display:flex;gap:8px;margin-top:4px}
+.brow .btn{flex:1}
+.tarea{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.tbar{
+  display:flex;align-items:center;gap:10px;padding:10px 18px;
+  background:var(--sf);border-bottom:1px solid var(--br);flex-shrink:0;
+}
+.tbar input{
+  background:var(--card);border:1px solid var(--br);border-radius:7px;
+  padding:7px 12px;color:var(--tx);font-size:13px;font-family:inherit;
+  outline:none;min-width:200px;transition:border-color .15s;
+}
+.tbar input:focus{border-color:var(--ac)}
+.sm{
+  padding:7px 13px;font-size:12px;font-weight:600;border-radius:7px;
+  border:1px solid var(--br);background:var(--card);color:var(--tx);
+  cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s;
+}
+.sm:hover{border-color:var(--ac);color:var(--ac)}
+.smr{color:var(--rd)}
+.smr:hover{border-color:var(--rd)!important;color:var(--rd)!important}
+.twrap{flex:1;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead{position:sticky;top:0;z-index:10;background:var(--th)}
+th{
+  padding:10px 16px;text-align:left;font-size:10px;color:var(--mu);
+  text-transform:uppercase;letter-spacing:.8px;font-weight:700;
+  border-bottom:1px solid var(--br);white-space:nowrap;
+}
+td{padding:10px 16px;border-bottom:1px solid var(--br);vertical-align:middle}
+tbody tr:hover{background:rgba(128,128,128,.06)}
+tbody tr:last-child td{border-bottom:none}
+.tn{font-family:"Consolas","Courier New",monospace;font-weight:700;color:var(--ac);font-size:14px}
+.tm{color:var(--mu);font-size:12px}
+.tb2{font-weight:600}
+.tfr td{
+  background:var(--th);border-top:2px solid var(--br);font-weight:700;
+  color:var(--mu);font-size:12px;text-transform:uppercase;letter-spacing:.5px;
+}
+.tfa{color:var(--ac);font-size:15px;font-family:"Consolas","Courier New",monospace}
+.erow td{padding:70px 0;text-align:center;color:var(--mu)}
+.ei{font-size:40px;margin-bottom:12px}
+.et{font-size:15px;font-weight:600;color:var(--tx);margin-bottom:4px}
+.ed{font-size:12px}
+#ph{flex-direction:column;overflow-y:auto}
+.hin{max-width:960px;margin:0 auto;padding:24px 28px;width:100%}
+.hcard{background:var(--sf);border:1px solid var(--br);border-radius:10px;padding:18px 22px;margin-bottom:16px}
+.htit{font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px}
+.drow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.drow input{background:var(--card);border:1px solid var(--br);border-radius:7px;padding:8px 13px;color:var(--tx);font-size:13px;font-family:inherit;outline:none;}
+.drow input:focus{border-color:var(--ac)}
+.dc{padding:8px 15px;border-radius:7px;border:1px solid var(--br);background:var(--card);color:var(--tx);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;}
+.dc:hover{border-color:var(--ac);color:var(--ac)}
+.rb{padding:8px 20px;background:var(--ac);color:#111;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-left:auto;}
+.rb:hover{background:var(--ac2)}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:16px}
+.sc{background:var(--sf);border:1px solid var(--br);border-radius:10px;padding:16px 18px;text-align:center}
+.scl{font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.scv{font-size:26px;font-weight:800;font-family:"Consolas","Courier New",monospace;line-height:1}
+.scu{font-size:11px;color:var(--mu);margin-top:4px}
+.cor{color:var(--ac)}.cgr{color:var(--gr)}.cbl{color:var(--bl)}.cmu{color:var(--mu)}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--br);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--mu)}
+#toast{
+  position:fixed;bottom:26px;right:26px;background:var(--gr);color:#fff;
+  padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;
+  opacity:0;transform:translateY(10px);transition:all .22s;pointer-events:none;z-index:9999;
+}
+#toast.on{opacity:1;transform:translateY(0)}
+#chk-frame{position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;border:none}
+
+/* Mobile responsive */
+@media(max-width:640px){
+  .sidebar{width:100%;min-width:unset;border-right:none;border-bottom:1px solid var(--br);}
+  #pk{flex-direction:column;}
+  .tbar input{min-width:120px;}
+  .topbar{padding:0 12px;}
+  .sg{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="bi">⚖️</div>
+    <div><div class="bn">Avto Taroz</div><div class="bs">Arxiv Daftar Tizimi</div></div>
+  </div>
+  <div class="tabs">
+    <div class="tab on" data-p="k">📝 Yozuv kiritish</div>
+    <div class="tab" data-p="h">📊 Hisobot</div>
+  </div>
+  <div class="sp"></div>
+  <div class="tr2">
+    <div class="chip"><span class="fbdot" id="fbdot"></span>Firebase</div>
+    <div class="chip">Bugun: <b id="bc">0</b></div>
+    <div class="chip">Jami: <b id="ac">0</b></div>
+    <button class="thbtn" id="thbtn" title="Rejimni almashtirish">☀️</button>
+  </div>
+</div>
+
+<div class="main">
+  <!-- KIRITISH -->
+  <div class="pnl on" id="pk">
+    <div class="sidebar">
+      <div class="stitle">Tortish ma'lumotlari</div>
+      <div class="fld">
+        <label>Mashina raqami *</label>
+        <input id="fm" data-next="fb" type="text" placeholder="01 A 123 BA" autocomplete="off">
+      </div>
+      <div class="fld">
+        <label>Brutto (kg) *</label>
+        <input id="fb" data-next="ft" type="number" placeholder="0" min="0" step="10" oninput="calc()">
+      </div>
+      <div class="fld">
+        <label>Tara (kg)</label>
+        <input id="ft" data-next="fv" type="number" placeholder="0" min="0" step="10" oninput="calc()">
+      </div>
+      <div class="nbox">
+        <div class="nl">Netto</div>
+        <div class="nv" id="nv">0</div>
+        <div class="nu">kg</div>
+      </div>
+      <div class="fld">
+        <label>Sana va vaqt</label>
+        <input id="fv" type="datetime-local">
+      </div>
+      <div class="brow">
+        <button class="btn bg2" onclick="clrForm()">Tozalash</button>
+        <button class="btn bp" onclick="saveR()">💾 Saqlash &amp; Chek</button>
+      </div>
+    </div>
+
+    <div class="tarea">
+      <div class="tbar">
+        <input id="qs" type="text" placeholder="🔍  Mashina raqami..." oninput="render()">
+        <input id="qd" type="date" onchange="render()" title="Sana bo'yicha filter">
+        <div class="sp"></div>
+        <button class="sm" onclick="expCSV()">📥 CSV</button>
+        <button class="sm smr" onclick="clrFil()">✕ Filtr</button>
+      </div>
+      <div class="twrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:44px">#</th>
+              <th>Sana / Vaqt</th>
+              <th>Mashina</th>
+              <th style="text-align:right">Brutto (kg)</th>
+              <th style="text-align:right">Tara (kg)</th>
+              <th style="text-align:right">Netto (kg)</th>
+              <th style="width:80px"></th>
+            </tr>
+          </thead>
+          <tbody id="tb"><tr class="erow"><td colspan="7"><div class="ei">☁️</div><div class="et">Firebase'ga ulanmoqda...</div></td></tr></tbody>
+          <tfoot id="tf"></tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISOBOT -->
+  <div class="pnl" id="ph">
+    <div class="hin">
+      <div class="hcard">
+        <div class="htit">Davr tanlash</div>
+        <div class="drow">
+          <span style="font-size:12px;color:var(--mu)">dan</span>
+          <input type="date" id="rf">
+          <span style="font-size:12px;color:var(--mu)">gacha</span>
+          <input type="date" id="rt">
+          <button class="dc" onclick="rTod()">Bugun</button>
+          <button class="dc" onclick="rWk()">Hafta</button>
+          <button class="dc" onclick="rMo()">Oy</button>
+          <button class="rb" onclick="genR()">Hisobot ko'rsat</button>
+        </div>
+      </div>
+      <div class="sg" id="rs" style="display:none">
+        <div class="sc"><div class="scl">Jami yozuv</div><div class="scv cor" id="rc">0</div><div class="scu">ta mashina</div></div>
+        <div class="sc"><div class="scl">Jami Brutto</div><div class="scv cbl" id="rbr">0</div><div class="scu">kg</div></div>
+        <div class="sc"><div class="scl">Jami Tara</div><div class="scv cmu" id="rtr">0</div><div class="scu">kg</div></div>
+        <div class="sc"><div class="scl">Jami Netto</div><div class="scv cgr" id="rn">0</div><div class="scu">kg</div></div>
+      </div>
+      <div id="rtw" style="display:none;border:1px solid var(--br);border-radius:10px;overflow:hidden">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Sana</th><th>Mashina</th>
+              <th style="text-align:right">Brutto</th>
+              <th style="text-align:right">Tara</th>
+              <th style="text-align:right">Netto</th>
+            </tr>
+          </thead>
+          <tbody id="rtb"></tbody>
+          <tfoot id="rtf"></tfoot>
+        </table>
+      </div>
+      <div id="re" style="display:none;text-align:center;padding:70px 0;color:var(--mu)">
+        <div style="font-size:40px;margin-bottom:12px">📊</div>
+        <div style="font-size:15px;font-weight:600;color:var(--tx);margin-bottom:4px">Ushbu davrda yozuv topilmadi</div>
+        <div style="font-size:12px">Boshqa sanalarni tanlang</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<iframe id="chk-frame"></iframe>
+
+<script>
+var D = localStorage.getItem("tth") !== "light";
+
+(function(){ applyT(); setNow(); document.getElementById("fm").focus(); })();
+
+function applyT(){
+  document.documentElement.setAttribute("data-theme", D ? "dark" : "light");
+  document.getElementById("thbtn").textContent = D ? "☀️" : "🌙";
+}
+document.getElementById("thbtn").addEventListener("click", function(){
+  D = !D; localStorage.setItem("tth", D ? "dark" : "light"); applyT();
+});
+
+// Firebase ulanish holati — onValue ishlaganda yashil bo'ladi
+setTimeout(function(){
+  var dot = document.getElementById("fbdot");
+  if (dot) dot.classList.add("ok");
+}, 2000);
+
+function setNow(){
+  var n = new Date(), l = new Date(n - n.getTimezoneOffset()*60000);
+  document.getElementById("fv").value = l.toISOString().slice(0,16);
+}
+
+document.querySelectorAll("input[data-next]").forEach(function(el){
+  el.addEventListener("keydown", function(e){
+    if(e.key === "Enter"){
+      e.preventDefault();
+      var nx = document.getElementById(el.getAttribute("data-next"));
+      if(nx) nx.focus();
+    }
+  });
+});
+
+function calc(){
+  var b = parseFloat(document.getElementById("fb").value) || 0;
+  var t = parseFloat(document.getElementById("ft").value) || 0;
+  document.getElementById("nv").textContent = Math.max(0, b-t).toLocaleString("uz");
+}
+
+function clrForm(){
+  ["fm","fb","ft"].forEach(function(i){ document.getElementById(i).value=""; });
+  document.getElementById("nv").textContent = "0";
+  setNow();
+  document.getElementById("fm").focus();
+}
+
+function clrFil(){
+  document.getElementById("qs").value = "";
+  document.getElementById("qd").value = "";
+  render();
+}
+
+function fd(v){
+  if(!v) return "—";
+  var d = new Date(v);
+  return d.toLocaleDateString("uz-UZ") + " " + d.toLocaleTimeString("uz-UZ",{hour:"2-digit",minute:"2-digit"});
+}
+
+function toast(msg){
+  var el = document.getElementById("toast");
+  el.textContent = "✅ " + msg;
+  el.classList.add("on");
+  setTimeout(function(){ el.classList.remove("on"); }, 2500);
+}
+
+function shk(id){
+  var el = document.getElementById(id);
+  el.style.borderColor = "var(--rd)";
+  el.focus();
+  setTimeout(function(){ el.style.borderColor = ""; }, 1400);
+}
+
+// Hisobot tugmalar
+function rTod(){ var t=new Date().toISOString().slice(0,10); document.getElementById("rf").value=t; document.getElementById("rt").value=t; }
+function rWk(){ var to=new Date(),fr=new Date(to); fr.setDate(to.getDate()-6); document.getElementById("rf").value=fr.toISOString().slice(0,10); document.getElementById("rt").value=to.toISOString().slice(0,10); }
+function rMo(){ var t=new Date(); document.getElementById("rf").value=t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-01"; document.getElementById("rt").value=t.toISOString().slice(0,10); }
+
+// 80mm chek chop etish
+function printChek(r){
+  var d    = new Date(r.v);
+  var sana = d.toLocaleDateString("uz-UZ");
+  var vaqt = d.toLocaleTimeString("uz-UZ",{hour:"2-digit",minute:"2-digit"});
+  var raqam = "TRZ-" + String(r.id || r.ts).slice(-6);
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    +'<style>'
+    +'*{margin:0;padding:0;box-sizing:border-box}'
+    +'body{font-family:"Courier New",Courier,monospace;font-size:13px;width:72mm;margin:0 auto;padding:4mm 0;color:#000;}'
+    +'.center{text-align:center}.bold{font-weight:bold}.big{font-size:16px;font-weight:bold}'
+    +'.xl{font-size:20px;font-weight:900}.line{border-top:1px dashed #000;margin:4px 0}'
+    +'.line2{border-top:2px solid #000;margin:4px 0}'
+    +'.row{display:flex;justify-content:space-between;padding:2px 0}'
+    +'.row .l{text-align:left}.row .r{text-align:right;font-weight:bold}'
+    +'.sep{text-align:center;letter-spacing:2px;margin:4px 0}'
+    +'@media print{@page{size:80mm auto;margin:0}body{width:72mm}}'
+    +'</style></head><body>'
+    +'<div class="center big">⚖️ AVTO TAROZ</div>'
+    +'<div class="center" style="font-size:11px;margin-top:2px">Tortish natijalari cheki</div>'
+    +'<div class="line2" style="margin-top:6px"></div>'
+    +'<div class="row"><span class="l">Raqam:</span><span class="r">'+raqam+'</span></div>'
+    +'<div class="row"><span class="l">Sana:</span><span class="r">'+sana+'</span></div>'
+    +'<div class="row"><span class="l">Vaqt:</span><span class="r">'+vaqt+'</span></div>'
+    +'<div class="line"></div>'
+    +'<div class="row"><span class="l">Mashina:</span><span class="r" style="font-size:15px">'+r.m+'</span></div>'
+    +'<div class="line"></div>'
+    +'<div class="row"><span class="l">BRUTTO:</span><span class="r">'+r.b.toLocaleString()+' kg</span></div>'
+    +'<div class="row"><span class="l">TARA:</span><span class="r">'+r.t.toLocaleString()+' kg</span></div>'
+    +'<div class="line2"></div>'
+    +'<div class="center" style="margin:6px 0 2px">NETTO</div>'
+    +'<div class="center xl">'+r.n.toLocaleString()+' kg</div>'
+    +'<div class="line2" style="margin-top:6px"></div>'
+    +'<div class="center" style="font-size:11px;margin-top:4px">Ushbu chek rasmiy hujjat hisoblanadi</div>'
+    +'<div class="sep" style="margin-top:6px;font-size:11px;color:#555">- - - - - - - - - - - - - - - - -</div>'
+    +'</body></html>';
+
+  var fr = document.getElementById("chk-frame");
+  fr.onload = function(){
+    try{ fr.contentWindow.focus(); fr.contentWindow.print(); }
+    catch(e){
+      var w = window.open("","_blank","width=400,height=600");
+      w.document.write(html); w.document.close();
+      w.onload = function(){ w.print(); };
+    }
+  };
+  fr.srcdoc = html;
+}
+
+// Tabs
+document.querySelectorAll(".tab").forEach(function(tab){
+  tab.addEventListener("click", function(){
+    var n = tab.dataset.p;
+    document.querySelectorAll(".tab").forEach(function(t){ t.classList.remove("on"); });
+    document.querySelectorAll(".pnl").forEach(function(p){ p.classList.remove("on"); });
+    tab.classList.add("on");
+    document.getElementById("p"+n).classList.add("on");
+  });
+});
+
+// Ctrl+Enter => saqlash
+document.addEventListener("keydown", function(e){
+  if(e.key==="Enter" && e.ctrlKey) saveR();
+});
+</script>
+</body>
+</html>
