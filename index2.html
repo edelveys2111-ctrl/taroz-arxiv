@@ -1,0 +1,2030 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avto Taroz</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+[data-theme="dark"]{
+  --bg:#0f1117;--sf:#161920;--card:#1c1f2e;--br:#252a3d;
+  --ac:#f0a500;--ac2:#c88000;--tx:#dde1ef;--mu:#5e6680;
+  --gr:#22a85a;--rd:#d63c2f;--bl:#2a7ab5;--th:#1c1f2e;--sh:rgba(0,0,0,.5);
+}
+[data-theme="light"]{
+  --bg:#e8ecf4;--sf:#ffffff;--card:#f3f5fb;--br:#cdd2e4;
+  --ac:#b06c00;--ac2:#8a5300;--tx:#1c2030;--mu:#7a829e;
+  --gr:#1a7a40;--rd:#b83226;--bl:#1f6090;--th:#eaecf5;--sh:rgba(0,0,0,.08);
+}
+html,body{height:100%}
+body{
+  font-family:"Segoe UI",system-ui,sans-serif;
+  background:var(--bg);color:var(--tx);
+  display:flex;flex-direction:column;height:100vh;overflow:hidden;
+  transition:background .3s,color .3s;
+}
+.topbar{
+  background:var(--sf);border-bottom:2px solid var(--ac);
+  display:flex;align-items:center;padding:0 24px;height:52px;
+  flex-shrink:0;gap:16px;box-shadow:0 2px 10px var(--sh);
+}
+.brand{display:flex;align-items:center;gap:10px;white-space:nowrap}
+.bi{font-size:22px}
+.bn{font-size:14px;font-weight:800;letter-spacing:1.5px;color:var(--ac);text-transform:uppercase}
+.bs{font-size:10px;color:var(--mu)}
+.tabs{display:flex;gap:2px;height:100%;align-items:flex-end}
+.tab{
+  padding:0 18px;height:40px;display:flex;align-items:center;
+  font-size:13px;font-weight:600;color:var(--mu);cursor:pointer;
+  border-bottom:3px solid transparent;border-radius:6px 6px 0 0;
+  transition:color .15s,border-color .15s;user-select:none;gap:6px;
+}
+.tab:hover{color:var(--tx)}
+.tab.on{color:var(--ac);border-bottom-color:var(--ac)}
+.sp{flex:1}
+.tr2{display:flex;align-items:center;gap:10px}
+.chip{
+  background:var(--card);border:1px solid var(--br);border-radius:20px;
+  padding:4px 13px;font-size:12px;color:var(--mu);white-space:nowrap;
+}
+.chip b{color:var(--ac)}
+.thbtn{
+  width:36px;height:36px;border-radius:50%;border:1.5px solid var(--br);
+  background:var(--card);color:var(--tx);font-size:17px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .2s;
+}
+.thbtn:hover{border-color:var(--ac)}
+.main{display:flex;flex:1;overflow:hidden}
+.pnl{display:none;flex:1;overflow:hidden}
+.pnl.on{display:flex}
+#pk{flex-direction:row}
+.sidebar{
+  width:240px;min-width:240px;background:var(--sf);border-right:1px solid var(--br);
+  display:flex;flex-direction:column;overflow-y:auto;padding:20px 16px;gap:14px;
+}
+.stitle{
+  font-size:10px;font-weight:700;color:var(--mu);
+  text-transform:uppercase;letter-spacing:1px;
+  padding-bottom:7px;border-bottom:1px solid var(--br);
+}
+.fld label{
+  display:block;font-size:11px;color:var(--mu);font-weight:600;
+  margin-bottom:5px;text-transform:uppercase;letter-spacing:.6px;
+}
+.fld input{
+  width:100%;background:var(--card);border:1.5px solid var(--br);
+  border-radius:7px;padding:10px 12px;color:var(--tx);
+  font-size:14px;font-family:inherit;outline:none;transition:border-color .15s;
+}
+.fld input:focus{border-color:var(--ac)}
+.fld input::placeholder{color:var(--mu)}
+.sugbox{
+  position:absolute;top:100%;left:0;right:0;z-index:50;
+  background:var(--card);border:1.5px solid var(--ac);border-top:none;
+  border-radius:0 0 8px 8px;max-height:160px;overflow-y:auto;
+  box-shadow:0 8px 16px rgba(0,0,0,.25);
+}
+.sugit{
+  padding:8px 10px;font-size:13px;cursor:pointer;color:var(--tx);
+  border-bottom:1px solid var(--br);
+}
+.sugit:last-child{border-bottom:none}
+.sugit:hover{background:var(--ac);color:#fff}
+.nbox{
+  background:var(--card);border:2px solid var(--ac);
+  border-radius:10px;padding:14px 10px;text-align:center;
+}
+.nl{font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.nv{font-size:38px;font-weight:800;color:var(--ac);font-family:"Consolas","Courier New",monospace;line-height:1;}
+.nu{font-size:12px;color:var(--mu);margin-top:3px}
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:11px 14px;border-radius:8px;border:none;font-size:13px;
+  font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;width:100%;
+}
+.bp{background:var(--ac);color:#111}
+.bp:hover{background:var(--ac2)}
+.bg2{background:transparent;color:var(--mu);border:1px solid var(--br)}
+.bg2:hover{color:var(--tx);border-color:var(--tx)}
+.brow{display:flex;gap:8px;margin-top:4px}
+.brow .btn{flex:1}
+.tarea{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.tbar{
+  display:flex;align-items:center;gap:10px;padding:10px 18px;
+  background:var(--sf);border-bottom:1px solid var(--br);flex-shrink:0;
+}
+.tbar input{
+  background:var(--card);border:1px solid var(--br);border-radius:7px;
+  padding:7px 12px;color:var(--tx);font-size:13px;font-family:inherit;
+  outline:none;min-width:200px;transition:border-color .15s;
+}
+.tbar input:focus{border-color:var(--ac)}
+.sm{
+  padding:7px 13px;font-size:12px;font-weight:600;border-radius:7px;
+  border:1px solid var(--br);background:var(--card);color:var(--tx);
+  cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s;
+}
+.sm:hover{border-color:var(--ac);color:var(--ac)}
+.smr{color:var(--rd)}
+.smr:hover{border-color:var(--rd)!important;color:var(--rd)!important}
+.twrap{flex:1;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead{position:sticky;top:0;z-index:10;background:var(--th)}
+th{
+  padding:10px 16px;text-align:left;font-size:10px;color:var(--mu);
+  text-transform:uppercase;letter-spacing:.8px;font-weight:700;
+  border-bottom:1px solid var(--br);white-space:nowrap;
+}
+td{padding:10px 16px;border-bottom:1px solid var(--br);vertical-align:middle}
+tbody tr:hover{background:rgba(128,128,128,.06)}
+tbody tr:last-child td{border-bottom:none}
+.tn{font-family:"Consolas","Courier New",monospace;font-weight:700;color:var(--ac);font-size:14px}
+.tm{color:var(--mu);font-size:12px}
+.tb2{font-weight:600}
+.tfr td{
+  background:var(--th);border-top:2px solid var(--br);font-weight:700;
+  color:var(--mu);font-size:12px;text-transform:uppercase;letter-spacing:.5px;
+}
+.tfa{color:var(--ac);font-size:15px;font-family:"Consolas","Courier New",monospace}
+.erow td{padding:70px 0;text-align:center;color:var(--mu)}
+.ei{font-size:40px;margin-bottom:12px}
+.et{font-size:15px;font-weight:600;color:var(--tx);margin-bottom:4px}
+.ed{font-size:12px}
+#ph{flex-direction:column;overflow-y:auto}
+.hin{max-width:960px;margin:0 auto;padding:24px 28px;width:100%}
+.hcard{background:var(--sf);border:1px solid var(--br);border-radius:10px;padding:18px 22px;margin-bottom:16px}
+.htit{font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px}
+.drow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.drow input{background:var(--card);border:1px solid var(--br);border-radius:7px;padding:8px 13px;color:var(--tx);font-size:13px;font-family:inherit;outline:none;}
+.drow input:focus{border-color:var(--ac)}
+.dc{padding:8px 15px;border-radius:7px;border:1px solid var(--br);background:var(--card);color:var(--tx);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;}
+.dc.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.dc:hover{border-color:var(--ac);color:var(--ac)}
+.rb{padding:8px 20px;background:var(--ac);color:#111;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-left:auto;}
+.rb:hover{background:var(--ac2)}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:16px}
+.sc{background:var(--sf);border:1px solid var(--br);border-radius:10px;padding:16px 18px;text-align:center}
+.scl{font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.scv{font-size:26px;font-weight:800;font-family:"Consolas","Courier New",monospace;line-height:1}
+.scu{font-size:11px;color:var(--mu);margin-top:4px}
+.cor{color:var(--ac)}.cgr{color:var(--gr)}.cbl{color:var(--bl)}.cmu{color:var(--mu)}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--br);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--mu)}
+#toast{
+  position:fixed;bottom:26px;right:26px;background:var(--gr);color:#fff;
+  padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;
+  opacity:0;transform:translateY(10px);transition:all .22s;pointer-events:none;z-index:9999;
+}
+#toast.on{opacity:1;transform:translateY(0)}
+
+/* ── CHK PRINTER STYLE (yashirin iframe orqali chop) ── */
+#chk-frame{position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;border:none}
+
+/* ── TELEGRAM SOZLAMALARI MODAL ── */
+.ovl{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.ovl.on{display:flex}
+.mbx{
+  background:var(--sf);border:1px solid var(--br);border-radius:14px;
+  width:100%;max-width:480px;max-height:88vh;overflow-y:auto;
+  box-shadow:0 20px 60px var(--sh);
+}
+.mhd{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--br);position:sticky;top:0;
+  background:var(--sf);z-index:2;
+}
+.mhd h3{font-size:15px;font-weight:800;color:var(--ac)}
+.mx{
+  width:30px;height:30px;border-radius:50%;border:none;background:var(--card);
+  color:var(--mu);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.mx:hover{color:var(--tx);background:var(--br)}
+.mbd{padding:18px 20px;display:flex;flex-direction:column;gap:18px}
+.msec{display:flex;flex-direction:column;gap:10px}
+.msec h4{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--mu);font-weight:700}
+.mrow{display:flex;gap:8px;align-items:center}
+.min{
+  flex:1;background:var(--card);border:1px solid var(--br);border-radius:8px;
+  padding:9px 12px;color:var(--tx);font-size:13px;outline:none;
+}
+.min:focus{border-color:var(--ac)}
+.mbtn{
+  background:var(--ac);color:#1a1206;border:none;border-radius:8px;
+  padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;
+}
+.mbtn:hover{background:var(--ac2)}
+.mbtn.sec{background:var(--card);color:var(--tx);border:1px solid var(--br)}
+.mbtn.sec:hover{border-color:var(--ac)}
+.mbtn.dgr{background:var(--rd);color:#fff}
+.mbtn:disabled{opacity:.5;cursor:not-allowed}
+.mstat{
+  display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;
+  background:var(--card);font-size:12.5px;color:var(--mu);border:1px solid var(--br);
+}
+.mdot{width:8px;height:8px;border-radius:50%;background:var(--mu);flex-shrink:0}
+.mdot.ok{background:var(--gr)}
+.mdot.err{background:var(--rd)}
+.mdot.wait{background:var(--ac);animation:mpulse 1s infinite}
+@keyframes mpulse{0%,100%{opacity:1}50%{opacity:.3}}
+.mnote{font-size:11.5px;color:var(--mu);line-height:1.5}
+.flist{display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto}
+.fitem{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  background:var(--card);border:1px solid var(--br);border-radius:8px;padding:8px 10px;font-size:13px;
+}
+.fitem span{flex:1}
+.fdel{
+  background:none;border:none;color:var(--rd);cursor:pointer;font-size:15px;padding:2px 6px;
+}
+.fempty{font-size:12.5px;color:var(--mu);text-align:center;padding:10px}
+.mlog{
+  font-family:monospace;font-size:11px;background:var(--card);border:1px solid var(--br);
+  border-radius:8px;padding:10px;max-height:140px;overflow-y:auto;color:var(--mu);white-space:pre-wrap;
+}
+.mtoggle{
+  position:relative;width:42px;height:24px;border-radius:12px;background:var(--card);
+  border:1px solid var(--br);cursor:pointer;flex-shrink:0;transition:background .2s;
+}
+.mtoggle.on{background:var(--gr);border-color:var(--gr)}
+.mtoggle i{
+  position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;
+  background:#fff;transition:transform .2s;
+}
+.mtoggle.on i{transform:translateX(18px)}
+
+.tblwrap{border:1px solid var(--br);border-radius:10px;overflow:hidden}
+
+/* ══════════ TELEFON VERSIYASI ══════════ */
+@media (max-width:820px){
+  .topbar{flex-wrap:wrap;height:auto;min-height:52px;padding:8px 10px;gap:6px 10px}
+  .brand{order:1}
+  .bs{display:none}
+  .bi{font-size:19px}
+  .bn{font-size:12.5px}
+  .sp{display:none}
+  .tr2{order:2;margin-left:auto;gap:6px}
+  .chip{display:none}
+  .thbtn{width:33px;height:33px;font-size:15px}
+  .tabs{order:3;flex-basis:100%;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tab{padding:0 12px;height:38px;font-size:12px;white-space:nowrap;flex-shrink:0}
+
+  .main{overflow-y:auto}
+  #pk{flex-direction:column}
+  .sidebar{width:100%;min-width:0;max-height:none;border-right:none;border-bottom:1px solid var(--br);padding:14px}
+  .tarea{overflow:visible}
+  .twrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  #pk table{min-width:700px}
+
+  .hin{padding:14px 12px}
+  .sg{grid-template-columns:repeat(2,1fr);gap:10px}
+  .sc{padding:12px 10px}
+  .scv{font-size:21px}
+  .drow{gap:8px}
+  .rb{margin-left:0;width:100%}
+
+  .tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  #rtw table{min-width:560px}
+  #ratw table{min-width:520px}
+  #dbtw table{min-width:600px}
+
+  .tbar{flex-wrap:wrap;padding:10px 12px}
+  .tbar input{min-width:0;flex:1}
+
+  /* iOS Safari inputga fokus tushganda avtomatik kattalashtirmasligi uchun 16px shart */
+  .fld input,.tbar input,.drow input,.min{font-size:16px}
+
+  .mbx{max-width:100%;margin:0}
+  .ovl{padding:0}
+  .mbx{border-radius:14px 14px 0 0;max-height:92vh;align-self:flex-end}
+  .ovl{align-items:flex-end}
+
+  .nv{font-size:32px}
+  th,td{padding:9px 10px;font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="bi">&#9878;&#65039;</div>
+    <div><div class="bn">Avto Taroz</div><div class="bs">Arxiv Daftar Tizimi</div></div>
+  </div>
+  <div class="tabs">
+    <div class="tab on" data-p="k">&#128221; Yozuv kiritish</div>
+    <div class="tab" data-p="h">&#128202; Hisobot</div>
+    <div class="tab" data-p="r">&#127942; Reyting</div>
+    <div class="tab" data-p="q">&#128176; Qarzdorlar</div>
+  </div>
+  <div class="sp"></div>
+  <div class="tr2">
+    <div class="chip">Bugun: <b id="bc">0</b></div>
+    <div class="chip">Jami: <b id="ac">0</b></div>
+    <button class="thbtn" id="fbbtn" title="Qurilmalar sinxronizatsiyasi" onclick="fbToggle()">&#9729;&#65039;</button>
+    <button class="thbtn" id="tgbtn" title="Telegram sozlamalari" onclick="tgOpenModal()">&#128244;</button>
+    <button class="thbtn" title="Zaxira nusxa yaratish" onclick="doBackup(false)">&#128190;</button>
+    <button class="thbtn" title="Zaxiradan tiklash" onclick="document.getElementById('restoreFile').click()">&#128194;</button>
+    <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="handleRestoreFile(this)">
+    <button class="thbtn" id="thbtn" title="Rejimni almashtirish">&#9728;&#65039;</button>
+  </div>
+</div>
+
+<!-- ══ TELEGRAM SOZLAMALARI MODAL ══ -->
+<div class="ovl" id="tgOvl" onclick="if(event.target===this)tgCloseModal()">
+  <div class="mbx">
+    <div class="mhd">
+      <h3>&#128244; Telegram sozlamalari</h3>
+      <button class="mx" onclick="tgCloseModal()">&#10005;</button>
+    </div>
+    <div class="mbd">
+
+      <div class="msec">
+        <h4>Ulanish holati</h4>
+        <div class="mstat"><span class="mdot" id="mdotConn"></span><span id="mtxtConn">Tekshirilmoqda...</span></div>
+      </div>
+
+      <div class="msec" id="mTokenSec">
+        <h4>1&#65039;&#8419; Bot token</h4>
+        <div class="mnote">@BotFather'dan olingan tokenni kiriting.</div>
+        <div class="mrow">
+          <input class="min" id="mTokenIn" type="text" placeholder="123456:ABC-DEF...">
+          <button class="mbtn" onclick="tgSaveToken()">Saqlash</button>
+        </div>
+      </div>
+
+      <div class="msec" id="mChatSec">
+        <h4>2&#65039;&#8419; Operator (siz)ni ulash</h4>
+        <div class="mnote" id="mChatNote">Telefoningizdan botga <b>/start</b> yozing — shu chatni operator sifatida aniqlaymiz.</div>
+        <button class="mbtn sec" id="mChatBtn" onclick="tgListenStart()">&#128272; /start kutilmoqda...</button>
+      </div>
+
+      <div class="msec" id="mOnSec" style="display:none">
+        <h4>Kuzatish</h4>
+        <div class="mrow" style="justify-content:space-between">
+          <span class="mnote" style="font-size:12.5px">Bot xabarlarni qabul qilishi</span>
+          <div class="mtoggle" id="mOnToggle" onclick="tgToggle()"><i></i></div>
+        </div>
+      </div>
+
+      <div class="msec">
+        <h4>&#127806; Fermerlar</h4>
+        <div class="flist" id="mFarmerList"></div>
+        <div class="mrow">
+          <input class="min" id="mFarmerName" placeholder="Ism" style="flex:1.2">
+          <input class="min" id="mFarmerPass" placeholder="Parol" style="flex:1">
+          <button class="mbtn" onclick="tgAddFarmer()">+</button>
+        </div>
+      </div>
+
+      <div class="msec">
+        <h4>Diagnostika</h4>
+        <div class="mrow">
+          <button class="mbtn sec" style="flex:1" onclick="tgRefreshDiag()">&#128260; Yangilash</button>
+        </div>
+        <div class="mlog" id="mDiagLog">—</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- KIRITISH -->
+  <div class="pnl on" id="pk">
+    <div class="sidebar">
+      <div class="stitle">Tortish ma'lumotlari</div>
+      <div class="fld" style="position:relative">
+        <label>Mashina raqami *</label>
+        <input id="fm" data-next="fb" type="text" placeholder="01 A 123 BA" autocomplete="off"
+          oninput="fmSuggest()" onfocus="fmSuggest()" onblur="fmBlur()">
+        <div id="fmSug" class="sugbox" style="display:none"></div>
+      </div>
+      <div class="fld">
+        <label style="display:flex;justify-content:space-between;align-items:center">
+          <span>Brutto (kg) *</span>
+          <button type="button" id="scaleBtn" class="sm" onclick="scaleConnect()" title="Tarozi indikatoriga ulanish" style="font-size:11px">&#128268; Tarozi</button>
+        </label>
+        <input id="fb" data-next="ft" type="number" placeholder="0" min="0" step="10" oninput="calc()">
+      </div>
+      <div class="fld">
+        <label>Tara (kg)</label>
+        <input id="ft" data-next="fi" type="number" placeholder="0" min="0" step="10" oninput="calc()">
+      </div>
+      <div class="fld" style="position:relative">
+        <label>Ism (fermer)</label>
+        <input id="fi" data-next="fv" type="text" placeholder="Ism familiya" autocomplete="off"
+          oninput="fiSuggest()" onfocus="fiSuggest()" onblur="fiBlur()">
+        <div id="fiSug" class="sugbox" style="display:none"></div>
+      </div>
+      <div class="nbox">
+        <div class="nl">Netto</div>
+        <div class="nv" id="nv">0</div>
+        <div class="nu">kg</div>
+      </div>
+      <div class="fld">
+        <label>Sana va vaqt</label>
+        <input id="fv" type="datetime-local">
+      </div>
+      <div class="brow">
+        <button class="btn bg2" onclick="clrForm()">Tozalash</button>
+        <button class="btn bp" onclick="saveR()">&#128190; Saqlash &amp; Chek</button>
+      </div>
+    </div>
+
+    <div class="tarea">
+      <div class="tbar">
+        <input id="qs" type="text" placeholder="&#128269;  Mashina yoki ism..." oninput="render()">
+        <input id="qd" type="date" onchange="render()" title="Sana bo'yicha filter">
+        <div class="sp"></div>
+        <button class="sm" onclick="expExcel()">&#128202; Excel</button>
+        <button class="sm smr" onclick="clrFil()">&#10005; Filtr</button>
+      </div>
+      <div class="twrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:44px">#</th>
+              <th>Sana / Vaqt</th>
+              <th>Mashina</th>
+              <th style="text-align:right">Brutto (kg)</th>
+              <th style="text-align:right">Tara (kg)</th>
+              <th>Ism</th>
+              <th style="text-align:right">Netto (kg)</th>
+              <th style="width:90px;text-align:center">To'lov</th>
+              <th style="width:80px"></th>
+            </tr>
+          </thead>
+          <tbody id="tb"></tbody>
+          <tfoot id="tf"></tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISOBOT -->
+  <div class="pnl" id="ph">
+    <div class="hin">
+      <div class="hcard">
+        <div class="htit">Davr tanlash</div>
+        <div class="drow">
+          <span style="font-size:12px;color:var(--mu)">dan</span>
+          <input type="date" id="rf">
+          <span style="font-size:12px;color:var(--mu)">gacha</span>
+          <input type="date" id="rt">
+          <button class="dc" onclick="rTod()">Bugun</button>
+          <button class="dc" onclick="rWk()">Hafta</button>
+          <button class="dc" onclick="rMo()">Oy</button>
+          <button class="rb" onclick="genR()">Hisobot ko'rsat</button>
+        </div>
+      </div>
+      <div class="sg" id="rs" style="display:none">
+        <div class="sc"><div class="scl">Jami yozuv</div><div class="scv cor" id="rc">0</div><div class="scu">ta mashina</div></div>
+        <div class="sc"><div class="scl">Jami Brutto</div><div class="scv cbl" id="rbr">0</div><div class="scu">kg</div></div>
+        <div class="sc"><div class="scl">Jami Tara</div><div class="scv cmu" id="rtr">0</div><div class="scu">kg</div></div>
+        <div class="sc"><div class="scl">Jami Netto</div><div class="scv cgr" id="rn">0</div><div class="scu">kg</div></div>
+      </div>
+      <div id="rtw" class="tblwrap" style="display:none">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Sana</th><th>Mashina</th>
+              <th style="text-align:right">Brutto</th>
+              <th style="text-align:right">Tara</th>
+              <th>Ism</th>
+              <th style="text-align:right">Netto</th>
+            </tr>
+          </thead>
+          <tbody id="rtb"></tbody>
+          <tfoot id="rtf"></tfoot>
+        </table>
+      </div>
+      <div id="re" style="display:none;text-align:center;padding:70px 0;color:var(--mu)">
+        <div style="font-size:40px;margin-bottom:12px">&#128202;</div>
+        <div style="font-size:15px;font-weight:600;color:var(--tx);margin-bottom:4px">Ushbu davrda yozuv topilmadi</div>
+        <div style="font-size:12px">Boshqa sanalarni tanlang</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pnl" id="pr">
+    <div class="hin">
+      <div class="hcard">
+        <div class="htit">Reyting turi</div>
+        <div class="drow">
+          <button class="dc on" id="ratB1" onclick="setRatMode('ism')">Ism bo'yicha</button>
+          <button class="dc" id="ratB2" onclick="setRatMode('mashina')">Mashina raqami bo'yicha</button>
+        </div>
+      </div>
+      <div id="ratw" class="tblwrap" style="margin-top:14px">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:44px">#</th>
+              <th id="ratLbl">Ism</th>
+              <th style="text-align:right">Necha marta kelgan</th>
+              <th style="text-align:right">Jami Netto (kg)</th>
+              <th>Oxirgi tashrif</th>
+            </tr>
+          </thead>
+          <tbody id="ratb"></tbody>
+        </table>
+      </div>
+      <div id="rate" style="display:none;text-align:center;padding:70px 0;color:var(--mu)">
+        <div style="font-size:40px;margin-bottom:12px">&#127942;</div>
+        <div style="font-size:15px;font-weight:600;color:var(--tx);margin-bottom:4px">Hali yozuvlar yo'q</div>
+        <div style="font-size:12px">Reyting yozuvlar kiritilgach paydo bo'ladi</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pnl" id="pq">
+    <div class="hin">
+      <div class="hcard">
+        <div class="htit">Qarzdorlar ro'yxati</div>
+        <div style="font-size:12px;color:var(--mu)">Mashina raqami bo'yicha guruhlangan, jami qarzdagi Netto bo'yicha tartiblangan</div>
+      </div>
+      <div id="dbtw" class="tblwrap" style="margin-top:14px">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:44px">#</th>
+              <th>Mashina</th>
+              <th>Ism</th>
+              <th style="text-align:right">Necha marta qarz</th>
+              <th style="text-align:right">Jami qarz Netto (kg)</th>
+              <th>Oxirgi qarz sanasi</th>
+              <th style="width:110px"></th>
+            </tr>
+          </thead>
+          <tbody id="dbtb"></tbody>
+        </table>
+      </div>
+      <div id="dbte" style="display:none;text-align:center;padding:70px 0;color:var(--mu)">
+        <div style="font-size:40px;margin-bottom:12px">&#128176;</div>
+        <div style="font-size:15px;font-weight:600;color:var(--tx);margin-bottom:4px">Qarzdorlar yo'q</div>
+        <div style="font-size:12px">Barcha yozuvlar Naqt \u2014 zo'r holat!</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<!-- Chek chop etish uchun yashirin iframe -->
+<iframe id="chk-frame"></iframe>
+
+<!-- Bir nechta qurilma o'rtasida sinxronizatsiya uchun Firebase Realtime Database -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+
+<script>
+var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],f={},c=function(t,r){o=function(t){for(var r=new Array(t),e=0;e<t;e+=1){r[e]=new Array(t);for(var n=0;n<t;n+=1)r[e][n]=null}return r}(i=4*e+17),l(0,0),l(i-7,0),l(0,i-7),s(),h(),d(t,r),e>=7&&v(t),null==a&&(a=p(e,n,u)),w(a,r)},l=function(t,r){for(var e=-1;e<=7;e+=1)if(!(t+e<=-1||i<=t+e))for(var n=-1;n<=7;n+=1)r+n<=-1||i<=r+n||(o[t+e][r+n]=0<=e&&e<=6&&(0==n||6==n)||0<=n&&n<=6&&(0==e||6==e)||2<=e&&e<=4&&2<=n&&n<=4)},h=function(){for(var t=8;t<i-8;t+=1)null==o[t][6]&&(o[t][6]=t%2==0);for(var r=8;r<i-8;r+=1)null==o[6][r]&&(o[6][r]=r%2==0)},s=function(){for(var t=B.getPatternPosition(e),r=0;r<t.length;r+=1)for(var n=0;n<t.length;n+=1){var i=t[r],a=t[n];if(null==o[i][a])for(var u=-2;u<=2;u+=1)for(var f=-2;f<=2;f+=1)o[i+u][a+f]=-2==u||2==u||-2==f||2==f||0==u&&0==f}},v=function(t){for(var r=B.getBCHTypeNumber(e),n=0;n<18;n+=1){var a=!t&&1==(r>>n&1);o[Math.floor(n/3)][n%3+i-8-3]=a}for(n=0;n<18;n+=1){a=!t&&1==(r>>n&1);o[n%3+i-8-3][Math.floor(n/3)]=a}},d=function(t,r){for(var e=n<<3|r,a=B.getBCHTypeInfo(e),u=0;u<15;u+=1){var f=!t&&1==(a>>u&1);u<6?o[u][8]=f:u<8?o[u+1][8]=f:o[i-15+u][8]=f}for(u=0;u<15;u+=1){f=!t&&1==(a>>u&1);u<8?o[8][i-u-1]=f:u<9?o[8][15-u-1+1]=f:o[8][15-u-1]=f}o[i-8][8]=!t},w=function(t,r){for(var e=-1,n=i-1,a=7,u=0,f=B.getMaskFunction(r),c=i-1;c>0;c-=2)for(6==c&&(c-=1);;){for(var g=0;g<2;g+=1)if(null==o[n][c-g]){var l=!1;u<t.length&&(l=1==(t[u]>>>a&1)),f(n,c-g)&&(l=!l),o[n][c-g]=l,-1==(a-=1)&&(u+=1,a=7)}if((n+=e)<0||i<=n){n-=e,e=-e;break}}},p=function(t,r,e){for(var n=A.getRSBlocks(t,r),o=b(),i=0;i<e.length;i+=1){var a=e[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var u=0;for(i=0;i<n.length;i+=1)u+=n[i].dataCount;if(o.getLengthInBits()>8*u)throw"code length overflow. ("+o.getLengthInBits()+">"+8*u+")";for(o.getLengthInBits()+4<=8*u&&o.put(0,4);o.getLengthInBits()%8!=0;)o.putBit(!1);for(;!(o.getLengthInBits()>=8*u||(o.put(236,8),o.getLengthInBits()>=8*u));)o.put(17,8);return function(t,r){for(var e=0,n=0,o=0,i=new Array(r.length),a=new Array(r.length),u=0;u<r.length;u+=1){var f=r[u].dataCount,c=r[u].totalCount-f;n=Math.max(n,f),o=Math.max(o,c),i[u]=new Array(f);for(var g=0;g<i[u].length;g+=1)i[u][g]=255&t.getBuffer()[g+e];e+=f;var l=B.getErrorCorrectPolynomial(c),h=k(i[u],l.getLength()-1).mod(l);for(a[u]=new Array(l.getLength()-1),g=0;g<a[u].length;g+=1){var s=g+h.getLength()-a[u].length;a[u][g]=s>=0?h.getAt(s):0}}var v=0;for(g=0;g<r.length;g+=1)v+=r[g].totalCount;var d=new Array(v),w=0;for(g=0;g<n;g+=1)for(u=0;u<r.length;u+=1)g<i[u].length&&(d[w]=i[u][g],w+=1);for(g=0;g<o;g+=1)for(u=0;u<r.length;u+=1)g<a[u].length&&(d[w]=a[u][g],w+=1);return d}(o,n)};f.addData=function(t,r){var e=null;switch(r=r||"Byte"){case"Numeric":e=M(t);break;case"Alphanumeric":e=x(t);break;case"Byte":e=m(t);break;case"Kanji":e=L(t);break;default:throw"mode:"+r}u.push(e),a=null},f.isDark=function(t,r){if(t<0||i<=t||r<0||i<=r)throw t+","+r;return o[t][r]},f.getModuleCount=function(){return i},f.make=function(){if(e<1){for(var t=1;t<40;t++){for(var r=A.getRSBlocks(t,n),o=b(),i=0;i<u.length;i++){var a=u[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var g=0;for(i=0;i<r.length;i++)g+=r[i].dataCount;if(o.getLengthInBits()<=8*g)break}e=t}c(!1,function(){for(var t=0,r=0,e=0;e<8;e+=1){c(!0,e);var n=B.getLostPoint(f);(0==e||t>n)&&(t=n,r=e)}return r}())},f.createTableTag=function(t,r){t=t||2;var e="";e+='<table style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: "+(r=void 0===r?4*t:r)+"px;",e+='">',e+="<tbody>";for(var n=0;n<f.getModuleCount();n+=1){e+="<tr>";for(var o=0;o<f.getModuleCount();o+=1)e+='<td style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: 0px;",e+=" width: "+t+"px;",e+=" height: "+t+"px;",e+=" background-color: ",e+=f.isDark(n,o)?"#000000":"#ffffff",e+=";",e+='"/>';e+="</tr>"}return e+="</tbody>",e+="</table>"},f.createSvgTag=function(t,r,e,n){var o={};"object"==typeof arguments[0]&&(t=(o=arguments[0]).cellSize,r=o.margin,e=o.alt,n=o.title),t=t||2,r=void 0===r?4*t:r,(e="string"==typeof e?{text:e}:e||{}).text=e.text||null,e.id=e.text?e.id||"qrcode-description":null,(n="string"==typeof n?{text:n}:n||{}).text=n.text||null,n.id=n.text?n.id||"qrcode-title":null;var i,a,u,c,g=f.getModuleCount()*t+2*r,l="";for(c="l"+t+",0 0,"+t+" -"+t+",0 0,-"+t+"z ",l+='<svg version="1.1" xmlns="http://www.w3.org/2000/svg"',l+=o.scalable?"":' width="'+g+'px" height="'+g+'px"',l+=' viewBox="0 0 '+g+" "+g+'" ',l+=' preserveAspectRatio="xMinYMin meet"',l+=n.text||e.text?' role="img" aria-labelledby="'+y([n.id,e.id].join(" ").trim())+'"':"",l+=">",l+=n.text?'<title id="'+y(n.id)+'">'+y(n.text)+"</title>":"",l+=e.text?'<description id="'+y(e.id)+'">'+y(e.text)+"</description>":"",l+='<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>',l+='<path d="',a=0;a<f.getModuleCount();a+=1)for(u=a*t+r,i=0;i<f.getModuleCount();i+=1)f.isDark(a,i)&&(l+="M"+(i*t+r)+","+u+c);return l+='" stroke="transparent" fill="black"/>',l+="</svg>"},f.createDataURL=function(t,r){t=t||2,r=void 0===r?4*t:r;var e=f.getModuleCount()*t+2*r,n=r,o=e-r;return I(e,e,function(r,e){if(n<=r&&r<o&&n<=e&&e<o){var i=Math.floor((r-n)/t),a=Math.floor((e-n)/t);return f.isDark(a,i)?0:1}return 1})},f.createImgTag=function(t,r,e){t=t||2,r=void 0===r?4*t:r;var n=f.getModuleCount()*t+2*r,o="";return o+="<img",o+=' src="',o+=f.createDataURL(t,r),o+='"',o+=' width="',o+=n,o+='"',o+=' height="',o+=n,o+='"',e&&(o+=' alt="',o+=y(e),o+='"'),o+="/>"};var y=function(t){for(var r="",e=0;e<t.length;e+=1){var n=t.charAt(e);switch(n){case"<":r+="&lt;";break;case">":r+="&gt;";break;case"&":r+="&amp;";break;case'"':r+="&quot;";break;default:r+=n}}return r};return f.createASCII=function(t,r){if((t=t||1)<2)return function(t){t=void 0===t?2:t;var r,e,n,o,i,a=1*f.getModuleCount()+2*t,u=t,c=a-t,g={"██":"█","█ ":"▀"," █":"▄","  ":" "},l={"██":"▀","█ ":"▀"," █":" ","  ":" "},h="";for(r=0;r<a;r+=2){for(n=Math.floor((r-u)/1),o=Math.floor((r+1-u)/1),e=0;e<a;e+=1)i="█",u<=e&&e<c&&u<=r&&r<c&&f.isDark(n,Math.floor((e-u)/1))&&(i=" "),u<=e&&e<c&&u<=r+1&&r+1<c&&f.isDark(o,Math.floor((e-u)/1))?i+=" ":i+="█",h+=t<1&&r+1>=c?l[i]:g[i];h+="\n"}return a%2&&t>0?h.substring(0,h.length-a-1)+Array(a+1).join("▀"):h.substring(0,h.length-1)}(r);t-=1,r=void 0===r?2*t:r;var e,n,o,i,a=f.getModuleCount()*t+2*r,u=r,c=a-r,g=Array(t+1).join("██"),l=Array(t+1).join("  "),h="",s="";for(e=0;e<a;e+=1){for(o=Math.floor((e-u)/t),s="",n=0;n<a;n+=1)i=1,u<=n&&n<c&&u<=e&&e<c&&f.isDark(o,Math.floor((n-u)/t))&&(i=0),s+=i?g:l;for(o=0;o<t;o+=1)h+=s+"\n"}return h.substring(0,h.length-1)},f.renderTo2dContext=function(t,r){r=r||2;for(var e=f.getModuleCount(),n=0;n<e;n++)for(var o=0;o<e;o++)t.fillStyle=f.isDark(n,o)?"black":"white",t.fillRect(o*r,n*r,r,r)},f};t.stringToBytes=(t.stringToBytesFuncs={default:function(t){for(var r=[],e=0;e<t.length;e+=1){var n=t.charCodeAt(e);r.push(255&n)}return r}}).default,t.createStringToBytes=function(t,r){var e=function(){for(var e=S(t),n=function(){var t=e.read();if(-1==t)throw"eof";return t},o=0,i={};;){var a=e.read();if(-1==a)break;var u=n(),f=n()<<8|n();i[String.fromCharCode(a<<8|u)]=f,o+=1}if(o!=r)throw o+" != "+r;return i}(),n="?".charCodeAt(0);return function(t){for(var r=[],o=0;o<t.length;o+=1){var i=t.charCodeAt(o);if(i<128)r.push(i);else{var a=e[t.charAt(o)];"number"==typeof a?(255&a)==a?r.push(a):(r.push(a>>>8),r.push(255&a)):r.push(n)}}return r}};var r,e,n,o,i,a=1,u=2,f=4,c=8,g={L:1,M:0,Q:3,H:2},l=0,h=1,s=2,v=3,d=4,w=5,p=6,y=7,B=(r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],e=1335,n=7973,i=function(t){for(var r=0;0!=t;)r+=1,t>>>=1;return r},(o={}).getBCHTypeInfo=function(t){for(var r=t<<10;i(r)-i(e)>=0;)r^=e<<i(r)-i(e);return 21522^(t<<10|r)},o.getBCHTypeNumber=function(t){for(var r=t<<12;i(r)-i(n)>=0;)r^=n<<i(r)-i(n);return t<<12|r},o.getPatternPosition=function(t){return r[t-1]},o.getMaskFunction=function(t){switch(t){case l:return function(t,r){return(t+r)%2==0};case h:return function(t,r){return t%2==0};case s:return function(t,r){return r%3==0};case v:return function(t,r){return(t+r)%3==0};case d:return function(t,r){return(Math.floor(t/2)+Math.floor(r/3))%2==0};case w:return function(t,r){return t*r%2+t*r%3==0};case p:return function(t,r){return(t*r%2+t*r%3)%2==0};case y:return function(t,r){return(t*r%3+(t+r)%2)%2==0};default:throw"bad maskPattern:"+t}},o.getErrorCorrectPolynomial=function(t){for(var r=k([1],0),e=0;e<t;e+=1)r=r.multiply(k([1,C.gexp(e)],0));return r},o.getLengthInBits=function(t,r){if(1<=r&&r<10)switch(t){case a:return 10;case u:return 9;case f:case c:return 8;default:throw"mode:"+t}else if(r<27)switch(t){case a:return 12;case u:return 11;case f:return 16;case c:return 10;default:throw"mode:"+t}else{if(!(r<41))throw"type:"+r;switch(t){case a:return 14;case u:return 13;case f:return 16;case c:return 12;default:throw"mode:"+t}}},o.getLostPoint=function(t){for(var r=t.getModuleCount(),e=0,n=0;n<r;n+=1)for(var o=0;o<r;o+=1){for(var i=0,a=t.isDark(n,o),u=-1;u<=1;u+=1)if(!(n+u<0||r<=n+u))for(var f=-1;f<=1;f+=1)o+f<0||r<=o+f||0==u&&0==f||a==t.isDark(n+u,o+f)&&(i+=1);i>5&&(e+=3+i-5)}for(n=0;n<r-1;n+=1)for(o=0;o<r-1;o+=1){var c=0;t.isDark(n,o)&&(c+=1),t.isDark(n+1,o)&&(c+=1),t.isDark(n,o+1)&&(c+=1),t.isDark(n+1,o+1)&&(c+=1),0!=c&&4!=c||(e+=3)}for(n=0;n<r;n+=1)for(o=0;o<r-6;o+=1)t.isDark(n,o)&&!t.isDark(n,o+1)&&t.isDark(n,o+2)&&t.isDark(n,o+3)&&t.isDark(n,o+4)&&!t.isDark(n,o+5)&&t.isDark(n,o+6)&&(e+=40);for(o=0;o<r;o+=1)for(n=0;n<r-6;n+=1)t.isDark(n,o)&&!t.isDark(n+1,o)&&t.isDark(n+2,o)&&t.isDark(n+3,o)&&t.isDark(n+4,o)&&!t.isDark(n+5,o)&&t.isDark(n+6,o)&&(e+=40);var g=0;for(o=0;o<r;o+=1)for(n=0;n<r;n+=1)t.isDark(n,o)&&(g+=1);return e+=Math.abs(100*g/r/r-50)/5*10},o),C=function(){for(var t=new Array(256),r=new Array(256),e=0;e<8;e+=1)t[e]=1<<e;for(e=8;e<256;e+=1)t[e]=t[e-4]^t[e-5]^t[e-6]^t[e-8];for(e=0;e<255;e+=1)r[t[e]]=e;var n={glog:function(t){if(t<1)throw"glog("+t+")";return r[t]},gexp:function(r){for(;r<0;)r+=255;for(;r>=256;)r-=255;return t[r]}};return n}();function k(t,r){if(void 0===t.length)throw t.length+"/"+r;var e=function(){for(var e=0;e<t.length&&0==t[e];)e+=1;for(var n=new Array(t.length-e+r),o=0;o<t.length-e;o+=1)n[o]=t[o+e];return n}(),n={getAt:function(t){return e[t]},getLength:function(){return e.length},multiply:function(t){for(var r=new Array(n.getLength()+t.getLength()-1),e=0;e<n.getLength();e+=1)for(var o=0;o<t.getLength();o+=1)r[e+o]^=C.gexp(C.glog(n.getAt(e))+C.glog(t.getAt(o)));return k(r,0)},mod:function(t){if(n.getLength()-t.getLength()<0)return n;for(var r=C.glog(n.getAt(0))-C.glog(t.getAt(0)),e=new Array(n.getLength()),o=0;o<n.getLength();o+=1)e[o]=n.getAt(o);for(o=0;o<t.getLength();o+=1)e[o]^=C.gexp(C.glog(t.getAt(o))+r);return k(e,0).mod(t)}};return n}var A=function(){var t=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],r=function(t,r){var e={};return e.totalCount=t,e.dataCount=r,e},e={};return e.getRSBlocks=function(e,n){var o=function(r,e){switch(e){case g.L:return t[4*(r-1)+0];case g.M:return t[4*(r-1)+1];case g.Q:return t[4*(r-1)+2];case g.H:return t[4*(r-1)+3];default:return}}(e,n);if(void 0===o)throw"bad rs block @ typeNumber:"+e+"/errorCorrectionLevel:"+n;for(var i=o.length/3,a=[],u=0;u<i;u+=1)for(var f=o[3*u+0],c=o[3*u+1],l=o[3*u+2],h=0;h<f;h+=1)a.push(r(c,l));return a},e}(),b=function(){var t=[],r=0,e={getBuffer:function(){return t},getAt:function(r){var e=Math.floor(r/8);return 1==(t[e]>>>7-r%8&1)},put:function(t,r){for(var n=0;n<r;n+=1)e.putBit(1==(t>>>r-n-1&1))},getLengthInBits:function(){return r},putBit:function(e){var n=Math.floor(r/8);t.length<=n&&t.push(0),e&&(t[n]|=128>>>r%8),r+=1}};return e},M=function(t){var r=a,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+2<r.length;)t.put(o(r.substring(n,n+3)),10),n+=3;n<r.length&&(r.length-n==1?t.put(o(r.substring(n,n+1)),4):r.length-n==2&&t.put(o(r.substring(n,n+2)),7))}},o=function(t){for(var r=0,e=0;e<t.length;e+=1)r=10*r+i(t.charAt(e));return r},i=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);throw"illegal char :"+t};return n},x=function(t){var r=u,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+1<r.length;)t.put(45*o(r.charAt(n))+o(r.charAt(n+1)),11),n+=2;n<r.length&&t.put(o(r.charAt(n)),6)}},o=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);if("A"<=t&&t<="Z")return t.charCodeAt(0)-"A".charCodeAt(0)+10;switch(t){case" ":return 36;case"$":return 37;case"%":return 38;case"*":return 39;case"+":return 40;case"-":return 41;case".":return 42;case"/":return 43;case":":return 44;default:throw"illegal char :"+t}};return n},m=function(r){var e=f,n=t.stringToBytes(r),o={getMode:function(){return e},getLength:function(t){return n.length},write:function(t){for(var r=0;r<n.length;r+=1)t.put(n[r],8)}};return o},L=function(r){var e=c,n=t.stringToBytesFuncs.SJIS;if(!n)throw"sjis not supported.";!function(){var t=n("友");if(2!=t.length||38726!=(t[0]<<8|t[1]))throw"sjis not supported."}();var o=n(r),i={getMode:function(){return e},getLength:function(t){return~~(o.length/2)},write:function(t){for(var r=o,e=0;e+1<r.length;){var n=(255&r[e])<<8|255&r[e+1];if(33088<=n&&n<=40956)n-=33088;else{if(!(57408<=n&&n<=60351))throw"illegal char at "+(e+1)+"/"+n;n-=49472}n=192*(n>>>8&255)+(255&n),t.put(n,13),e+=2}if(e<r.length)throw"illegal char at "+(e+1)}};return i},D=function(){var t=[],r={writeByte:function(r){t.push(255&r)},writeShort:function(t){r.writeByte(t),r.writeByte(t>>>8)},writeBytes:function(t,e,n){e=e||0,n=n||t.length;for(var o=0;o<n;o+=1)r.writeByte(t[o+e])},writeString:function(t){for(var e=0;e<t.length;e+=1)r.writeByte(t.charCodeAt(e))},toByteArray:function(){return t},toString:function(){var r="";r+="[";for(var e=0;e<t.length;e+=1)e>0&&(r+=","),r+=t[e];return r+="]"}};return r},S=function(t){var r=t,e=0,n=0,o=0,i={read:function(){for(;o<8;){if(e>=r.length){if(0==o)return-1;throw"unexpected end of file./"+o}var t=r.charAt(e);if(e+=1,"="==t)return o=0,-1;t.match(/^\s$/)||(n=n<<6|a(t.charCodeAt(0)),o+=6)}var i=n>>>o-8&255;return o-=8,i}},a=function(t){if(65<=t&&t<=90)return t-65;if(97<=t&&t<=122)return t-97+26;if(48<=t&&t<=57)return t-48+52;if(43==t)return 62;if(47==t)return 63;throw"c:"+t};return i},I=function(t,r,e){for(var n=function(t,r){var e=t,n=r,o=new Array(t*r),i={setPixel:function(t,r,n){o[r*e+t]=n},write:function(t){t.writeString("GIF87a"),t.writeShort(e),t.writeShort(n),t.writeByte(128),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(255),t.writeByte(255),t.writeByte(255),t.writeString(","),t.writeShort(0),t.writeShort(0),t.writeShort(e),t.writeShort(n),t.writeByte(0);var r=a(2);t.writeByte(2);for(var o=0;r.length-o>255;)t.writeByte(255),t.writeBytes(r,o,255),o+=255;t.writeByte(r.length-o),t.writeBytes(r,o,r.length-o),t.writeByte(0),t.writeString(";")}},a=function(t){for(var r=1<<t,e=1+(1<<t),n=t+1,i=u(),a=0;a<r;a+=1)i.add(String.fromCharCode(a));i.add(String.fromCharCode(r)),i.add(String.fromCharCode(e));var f,c,g,l=D(),h=(f=l,c=0,g=0,{write:function(t,r){if(t>>>r!=0)throw"length over";for(;c+r>=8;)f.writeByte(255&(t<<c|g)),r-=8-c,t>>>=8-c,g=0,c=0;g|=t<<c,c+=r},flush:function(){c>0&&f.writeByte(g)}});h.write(r,n);var s=0,v=String.fromCharCode(o[s]);for(s+=1;s<o.length;){var d=String.fromCharCode(o[s]);s+=1,i.contains(v+d)?v+=d:(h.write(i.indexOf(v),n),i.size()<4095&&(i.size()==1<<n&&(n+=1),i.add(v+d)),v=d)}return h.write(i.indexOf(v),n),h.write(e,n),h.flush(),l.toByteArray()},u=function(){var t={},r=0,e={add:function(n){if(e.contains(n))throw"dup key:"+n;t[n]=r,r+=1},size:function(){return r},indexOf:function(r){return t[r]},contains:function(r){return void 0!==t[r]}};return e};return i}(t,r),o=0;o<r;o+=1)for(var i=0;i<t;i+=1)n.setPixel(i,o,e(i,o));var a=D();n.write(a);for(var u=function(){var t=0,r=0,e=0,n="",o={},i=function(t){n+=String.fromCharCode(a(63&t))},a=function(t){if(t<0);else{if(t<26)return 65+t;if(t<52)return t-26+97;if(t<62)return t-52+48;if(62==t)return 43;if(63==t)return 47}throw"n:"+t};return o.writeByte=function(n){for(t=t<<8|255&n,r+=8,e+=1;r>=6;)i(t>>>r-6),r-=6},o.flush=function(){if(r>0&&(i(t<<6-r),t=0,r=0),e%3!=0)for(var o=3-e%3,a=0;a<o;a+=1)n+="="},o.toString=function(){return n},o}(),f=a.toByteArray(),c=0;c<f.length;c+=1)u.writeByte(f[c]);return u.flush(),"data:image/gif;base64,"+u};return t}();qrcode.stringToBytesFuncs["UTF-8"]=function(t){return function(t){for(var r=[],e=0;e<t.length;e++){var n=t.charCodeAt(e);n<128?r.push(n):n<2048?r.push(192|n>>6,128|63&n):n<55296||n>=57344?r.push(224|n>>12,128|n>>6&63,128|63&n):(e++,n=65536+((1023&n)<<10|1023&t.charCodeAt(e)),r.push(240|n>>18,128|n>>12&63,128|n>>6&63,128|63&n))}return r}(t)},function(t){"function"==typeof define&&define.amd?define([],t):"object"==typeof exports&&(module.exports=t())}(function(){return qrcode});
+</script>
+<script>
+var R=JSON.parse(localStorage.getItem("tv5")||"[]");
+var D=localStorage.getItem("tth")!=="light";
+var MN="font-family:'Consolas','Courier New',monospace";
+
+/* ══ QURILMALAR ORASIDA SINXRONIZATSIYA (Firebase Realtime Database) ══
+   Har bir yozuv "records/{id}" deb alohida saqlanadi va faqat update()
+   (patch) bilan yoziladi — hech qachon butun daraxt bir yo'la almashtirilmaydi.
+   Shu tufayli bitta qurilmadagi nosozlik boshqa qurilmadagi ma'lumotni
+   o'chirib yubormaydi (avvalgi yo'qotish holati qaytarilmaydi). */
+var firebaseConfig={
+  apiKey:"AIzaSyAnswyuo5bclHyNq64_zaydPEFjfjcOeHg",
+  authDomain:"tarozi-arxiv-chek.firebaseapp.com",
+  databaseURL:"https://tarozi-arxiv-chek-default-rtdb.firebaseio.com",
+  projectId:"tarozi-arxiv-chek",
+  storageBucket:"tarozi-arxiv-chek.firebasestorage.app",
+  messagingSenderId:"120206177463",
+  appId:"1:120206177463:web:53bc9fc5c7d5a7aca5c932"
+};
+var fbDB=null,fbReady=false;
+var FB_ON=localStorage.getItem("fb_sync_on")!=="0"; /* standart holatda yoqilgan */
+try{
+  if(typeof firebase!=="undefined"){
+    firebase.initializeApp(firebaseConfig);
+    fbDB=firebase.database();
+    fbReady=true;
+  }
+}catch(e){fbReady=false;}
+
+function fbPushAll(){
+  if(!fbReady||!FB_ON||!R.length)return;
+  var obj={};
+  R.forEach(function(r){obj[r.id]=r;});
+  fbDB.ref("records").update(obj).catch(function(){/* internet yo'q — keyingi safar qayta uriniladi */});
+}
+function fbRemoveOne(id){
+  if(!fbReady||!FB_ON)return;
+  fbDB.ref("records/"+id).remove().catch(function(){});
+}
+function fbListen(){
+  if(!fbReady||!FB_ON)return;
+  fbDB.ref("records").on("value",function(snap){
+    var data=snap.val()||{};
+    var changed=false;
+    Object.keys(data).forEach(function(k){
+      var rec=data[k];
+      if(!rec||!rec.m)return;
+      rec.id=rec.id||parseInt(k,10);
+      var idx=R.findIndex(function(r){return String(r.id)===String(rec.id);});
+      if(idx===-1){R.push(rec);changed=true;}
+      else if(JSON.stringify(R[idx])!==JSON.stringify(rec)){R[idx]=rec;changed=true;}
+    });
+    if(changed){
+      R.sort(function(a,b){return b.id-a.id;});
+      localStorage.setItem("tv5",JSON.stringify(R));
+      updC();render();
+    }
+  });
+}
+function fbToggle(){
+  FB_ON=!FB_ON;
+  localStorage.setItem("fb_sync_on",FB_ON?"1":"0");
+  fbUI();
+  if(FB_ON){fbListen();fbPushAll();toast("Sinxronizatsiya yoqildi \u2713");}
+  else{toast("Sinxronizatsiya o'chirildi");}
+}
+function fbUI(){
+  var b=document.getElementById("fbbtn");
+  if(!b)return;
+  if(!fbReady){b.style.color="var(--rd)";b.title="Sinxronizatsiya: ulanmadi (internet yo'q?)";return}
+  if(!FB_ON){b.style.color="";b.title="Qurilmalar sinxronizatsiyasi: o'chirilgan (bosing)";return}
+  b.style.color="var(--gr)";b.title="Qurilmalar sinxronizatsiyasi: yoqilgan \u2713 (bosing o'chirish uchun)";
+}
+
+(function(){applyT();setNow();updC();render();document.getElementById("fm").focus();scaleAutoInit();checkDailyBackup();fbListen();fbPushAll();fbUI();})();
+
+function applyT(){
+  document.documentElement.setAttribute("data-theme",D?"dark":"light");
+  document.getElementById("thbtn").textContent=D?"\u2600\uFE0F":"\uD83C\uDF19";
+}
+document.getElementById("thbtn").addEventListener("click",function(){
+  D=!D;localStorage.setItem("tth",D?"dark":"light");applyT();
+});
+
+function setNow(){
+  var n=new Date(),l=new Date(n-n.getTimezoneOffset()*60000);
+  document.getElementById("fv").value=l.toISOString().slice(0,16);
+}
+
+/* Enter => keyingi maydon */
+document.querySelectorAll("input[data-next]").forEach(function(el){
+  el.addEventListener("keydown",function(e){
+    if(e.key==="Enter"){e.preventDefault();var nx=document.getElementById(el.getAttribute("data-next"));if(nx)nx.focus();}
+  });
+});
+
+function calc(){
+  var b=parseFloat(document.getElementById("fb").value)||0;
+  var t=parseFloat(document.getElementById("ft").value)||0;
+  document.getElementById("nv").textContent=Math.max(0,b-t).toLocaleString("uz");
+}
+
+/* ── MASHINA RAQAMI: AVTOTO'LDIRISH + TARANI AVTOMATIK QO'YISH ── */
+function fmSuggest(){
+  var q=document.getElementById("fm").value.trim().toUpperCase();
+  var box=document.getElementById("fmSug");
+  if(!q){box.style.display="none";box.innerHTML="";return}
+  var seen={},list=[];
+  for(var i=0;i<R.length&&list.length<6;i++){
+    var mm=R[i].m;
+    if(mm&&mm.indexOf(q)!==-1&&!seen[mm]){seen[mm]=1;list.push(mm);}
+  }
+  if(!list.length){box.style.display="none";box.innerHTML="";return}
+  box.innerHTML=list.map(function(m){
+    return "<div class='sugit' onmousedown='fmPick(\""+m+"\")'>"+m+"</div>";
+  }).join("");
+  box.style.display="block";
+}
+function fmPick(m){
+  document.getElementById("fm").value=m;
+  document.getElementById("fmSug").style.display="none";
+  fmAutoTara(m);
+  document.getElementById("fb").focus();
+}
+function fmBlur(){
+  setTimeout(function(){
+    document.getElementById("fmSug").style.display="none";
+    fmAutoTara(document.getElementById("fm").value.trim().toUpperCase());
+  },150);
+}
+/* Shu mashina raqami bilan oldin kiritilgan eng so'nggi Tara qiymatini topib qo'yadi */
+function fmAutoTara(m){
+  if(!m)return;
+  var ft=document.getElementById("ft");
+  if(ft.value)return; /* qo'lda kiritilgan bo'lsa ustidan yozmaydi */
+  for(var i=0;i<R.length;i++){
+    if(R[i].m===m){
+      ft.value=R[i].t||"";
+      calc();
+      break;
+    }
+  }
+}
+
+/* ── HAYDOVCHI ISMI: AVTOTO'LDIRISH (mashina raqamiga o'xshab) ── */
+function fiSuggest(){
+  var q=document.getElementById("fi").value.trim().toLowerCase();
+  var box=document.getElementById("fiSug");
+  if(!q){box.style.display="none";box.innerHTML="";return}
+  var seen={},list=[];
+  for(var i=0;i<R.length&&list.length<6;i++){
+    var nm=R[i].ism;
+    if(nm&&nm.toLowerCase().indexOf(q)!==-1&&!seen[nm.toLowerCase()]){seen[nm.toLowerCase()]=1;list.push(nm);}
+  }
+  if(!list.length){box.style.display="none";box.innerHTML="";return}
+  box.innerHTML=list.map(function(nm){
+    return "<div class='sugit' onmousedown='fiPick(\""+nm.replace(/"/g,"&quot;")+"\")'>"+nm+"</div>";
+  }).join("");
+  box.style.display="block";
+}
+function fiPick(nm){
+  document.getElementById("fi").value=nm;
+  document.getElementById("fiSug").style.display="none";
+  fiAutoPlate(nm);
+  document.getElementById("fv").focus();
+}
+function fiBlur(){
+  setTimeout(function(){document.getElementById("fiSug").style.display="none";},150);
+}
+/* Shu ism bilan oldin kiritilgan eng so'nggi mashina raqamini topib qo'yadi (mashina raqami bo'sh bo'lsagina) */
+function fiAutoPlate(nm){
+  var fm=document.getElementById("fm");
+  if(fm.value.trim())return;
+  for(var i=0;i<R.length;i++){
+    if(R[i].ism===nm&&R[i].m){
+      fm.value=R[i].m;
+      fmAutoTara(R[i].m);
+      break;
+    }
+  }
+}
+
+/* ══ TAROZI INDIKATORI (USB-COM adapter) — Web Serial API orqali ══
+   ЕВА-Б dan tekshirilgan protokol (amaliy test orqali aniqlangan):
+   [+/-](1 bayt) + 8 ta ASCII raqam + status(1 bayt) + ETX 0x03
+   Og'irlik = 8 xonali sondagi qiymat / 100 (masalan "00001001" -> 1001/100 = 10.01 kg) */
+var scalePort=null,scaleReader=null,scaleBuf=[],scaleOn=false;
+var SCALE_BAUD=parseInt(localStorage.getItem("scale_baud")||"9600",10);
+
+async function scaleConnect(){
+  if(!("serial" in navigator)){
+    alert("Bu funksiya faqat Google Chrome brauzerida ishlaydi (va faqat kompyuterda, telefonda emas). Chrome'ni yangilab ko'ring.");
+    return;
+  }
+  if(scaleOn){scaleDisconnect();return}
+  try{
+    var b=prompt("Tezlik (baud rate) \u2014 odatda 9600, 4800 yoki 19200:",SCALE_BAUD);
+    if(b===null)return;
+    SCALE_BAUD=parseInt(b,10)||9600;
+    localStorage.setItem("scale_baud",SCALE_BAUD);
+    scalePort=await navigator.serial.requestPort();
+    try{await scalePort.close();}catch(e2){} /* agar allaqachon ochiq (eski) bo'lsa, avval yopib olamiz */
+    await scalePort.open({baudRate:SCALE_BAUD});
+    scaleOn=true;
+    scaleUI();
+    toast("Tarozi ulandi \u2713 Ma'lumot kutilmoqda...");
+    scaleReadLoop();
+  }catch(e){
+    scalePort=null;
+    if(e&&e.message&&e.message.indexOf("already open")!==-1){
+      alert("Tarozi allaqachon ulangan edi. Iltimos, sahifani yangilang (F5) va qaytadan urinib ko'ring.");
+    }else if(e&&e.name!=="NotFoundError"){
+      alert("Ulanishda xato: "+(e.message||e));
+    }
+  }
+}
+
+async function scaleAutoInit(){
+  if(!("serial" in navigator))return;
+  try{
+    var ports=await navigator.serial.getPorts();
+    if(ports.length===1){
+      scalePort=ports[0];
+      try{await scalePort.close();}catch(e2){} /* oldingi sessiyadan ochiq qolgan bo'lsa, tozalab olamiz */
+      await scalePort.open({baudRate:SCALE_BAUD});
+      scaleOn=true;
+      scaleUI();
+      toast("Tarozi avtomatik ulandi");
+      scaleReadLoop();
+    }
+  }catch(e){/* ulanmagan holatda jim turadi, qo'lda ulash mumkin */}
+}
+
+async function scaleReadLoop(){
+  try{
+    var reader=scalePort.readable.getReader(); /* xom baytlar — matn sifatida emas */
+    scaleReader=reader;
+    scaleBuf=[];
+    while(true){
+      var res=await reader.read();
+      if(res.done)break;
+      /* res.value — Uint8Array */
+      for(var i=0;i<res.value.length;i++)scaleBuf.push(res.value[i]);
+      scaleProcessBuffer();
+    }
+    reader.releaseLock();
+  }catch(e){
+    /* kabel uzilganda yoki port yopilganda shu yerga tushadi */
+  }
+  /* Portni to'liq yopamiz, aks holda keyingi ulanishda "port allaqachon ochiq" xatosi chiqadi */
+  try{if(scalePort)await scalePort.close();}catch(e){}
+  scalePort=null;
+  scaleOn=false;scaleUI();
+}
+
+/* Bufer ichidan [+/-] + 8 ta ASCII raqam ('0'-'9') ketma-ketligini qidiradi */
+function scaleProcessBuffer(){
+  var i=0,last=null,lastEnd=0;
+  while(i<=scaleBuf.length-9){
+    var b0=scaleBuf[i];
+    if(b0===0x2B||b0===0x2D){ /* '+' yoki '-' */
+      var ok=true,digits="";
+      for(var k=1;k<=8;k++){
+        var b=scaleBuf[i+k];
+        if(b<0x30||b>0x39){ok=false;break}
+        digits+=String.fromCharCode(b);
+      }
+      if(ok){
+        /* Oxirgi 2 raqam doim turg'un ("01") ekan — haqiqiy og'irlik faqat birinchi 6 xonada, butun kg holida */
+        last=(b0===0x2D?-1:1)*parseInt(digits.substring(0,6),10);
+        i+=9;lastEnd=i;
+        continue;
+      }
+    }
+    i++;
+  }
+  if(last!==null){
+    document.getElementById("fb").value=last;
+    calc();
+  }
+  if(lastEnd>0)scaleBuf=scaleBuf.slice(lastEnd);
+  if(scaleBuf.length>200)scaleBuf=scaleBuf.slice(-40); /* mos kelmagan axlat cheksiz to'planib qolmasin */
+}
+function scaleDisconnect(){
+  if(scaleReader){try{scaleReader.cancel();}catch(e){}scaleReader=null;}
+  if(scalePort){try{scalePort.close();}catch(e){}scalePort=null;}
+  scaleOn=false;scaleUI();
+  toast("Tarozi uzildi");
+}
+function scaleUI(){
+  var b=document.getElementById("scaleBtn");
+  if(!b)return;
+  b.innerHTML=scaleOn?"&#128268; Ulangan":"&#128268; Tarozi";
+  b.style.color=scaleOn?"var(--gr)":"";
+}
+
+/* ── SAQLASH + CHEK ── */
+function saveR(){
+  var m=document.getElementById("fm").value.trim().toUpperCase();
+  var ism=document.getElementById("fi").value.trim();
+  var b=parseFloat(document.getElementById("fb").value);
+  var t=parseFloat(document.getElementById("ft").value)||0;
+  if(!m){shk("fm");return}
+  if(!b||b<=0){shk("fb");return}
+  var rec={
+    id:Date.now(),
+    v:document.getElementById("fv").value||new Date().toISOString().slice(0,16),
+    m:m,ism:ism,b:b,t:t,n:Math.max(0,b-t),qarz:false
+  };
+  R.unshift(rec);
+  persistR();
+  updC();render();clrForm();
+  printChek(rec);
+  tgNotifyCustomer(rec);
+  toast("Saqlandi! Chek yuborilmoqda...");
+  checkDailyBackup();
+}
+
+/* ── 80mm CHEK CHOP ETISH ── */
+function printChek(r){
+  var d=new Date(r.v);
+  var sana=d.toLocaleDateString("uz-UZ");
+  var vaqt=d.toLocaleTimeString("uz-UZ",{hour:"2-digit",minute:"2-digit"});
+
+  /* Raqam generatsiya */
+  var raqam="TRZ-"+String(r.id).slice(-6);
+
+  /* QR kod — agar Telegram bot ulangan bo'lsa, botga olib boruvchi havola (iOS/Android'da to'g'ridan-to'g'ri ochiladi,
+     "Google'da qidirish" muammosisiz). Aks holda oddiy matn sifatida kodlaydi. */
+  var qrImg="";
+  try{
+    var qrText;
+    if(TG_USERNAME){
+      qrText="https://t.me/"+TG_USERNAME+"?start=chek_"+r.id;
+    }else{
+      qrText="AVTO TAROZ CHEKI\n"
+        +"Raqam: "+raqam+"\n"
+        +"Sana: "+sana+" "+vaqt+"\n"
+        +"Mashina: "+r.m+"\n"
+        +"Brutto: "+r.b.toLocaleString()+" kg\n"
+        +"Tara: "+r.t.toLocaleString()+" kg\n"
+        +(r.ism?"Ism: "+r.ism+"\n":"")
+        +"Netto: "+r.n.toLocaleString()+" kg";
+    }
+    var qr=qrcode(0,"M");
+    qr.addData(qrText);
+    qr.make();
+    var qrDataUrl=qr.createDataURL(4,2);
+    qrImg='<div class="center" style="margin-top:6px">'
+      +'<img src="'+qrDataUrl+'" style="width:28mm;height:28mm">'
+      +'</div>'
+      +'<div class="center" style="font-size:9px;color:#000;margin-top:1px">Chek ma\'lumotlarini ko\'rish uchun QR kodni skanerlang</div>';
+  }catch(e){qrImg="";}
+
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    +'<style>'
+    +'*{margin:0;padding:0;box-sizing:border-box}'
+    +'body{'
+    +'  font-family:"Courier New",Courier,monospace;'
+    +'  font-size:12px;'
+    +'  font-weight:bold;'
+    +'  width:44mm;'        /* 56mm qog'oz, o'ng chetga qirqilmasin uchun zaxira */
+    +'  margin:0;'
+    +'  padding:3mm 0;'
+    +'  color:#000;'
+    +'  -webkit-print-color-adjust:exact;'
+    +'  print-color-adjust:exact;'
+    +'}'
+    +'.center{text-align:center}'
+    +'.bold{font-weight:bold}'
+    +'.big{font-size:14px;font-weight:900}'
+    +'.xl{font-size:18px;font-weight:900}'
+    +'.line{border-top:2px dashed #000;margin:4px 0}'
+    +'.line2{border-top:3px solid #000;margin:4px 0}'
+    +'.row{display:flex;justify-content:space-between;padding:2px 0}'
+    +'.row .l{text-align:left;font-weight:bold;color:#000}'
+    +'.row .r{text-align:right;font-weight:900;color:#000}'
+    +'.sep{text-align:center;letter-spacing:2px;margin:4px 0;color:#000}'
+    +'@media print{'
+    +'  @page{size:56mm auto;margin:0}'
+    +'  body{width:44mm}'
+    +'}'
+    +'</style></head><body>'
+
+    /* Sarlavha */
+    +'<div class="center big">&#9878;&#65039; AVTO TAROZ</div>'
+    +'<div class="center" style="font-size:11px;margin-top:2px">Tortish natijalari cheki</div>'
+    +'<div class="center" style="font-size:11px;margin-top:2px">Tel: +998900000421</div>'
+    +'<div class="line2" style="margin-top:6px"></div>'
+
+    /* Raqam va sana */
+    +'<div class="row"><span class="l">Raqam:</span><span class="r">'+raqam+'</span></div>'
+    +'<div class="row"><span class="l">Sana:</span><span class="r">'+sana+'</span></div>'
+    +'<div class="row"><span class="l">Vaqt:</span><span class="r">'+vaqt+'</span></div>'
+    +'<div class="line"></div>'
+
+    /* Mashina */
+    +'<div class="row"><span class="l">Mashina:</span><span class="r" style="font-size:15px">'+r.m+'</span></div>'
+    +'<div class="line"></div>'
+
+    /* Og'irliklar */
+    +'<div class="row"><span class="l">BRUTTO:</span><span class="r">'+r.b.toLocaleString()+' kg</span></div>'
+    +'<div class="row"><span class="l">TARA:</span><span class="r">'+r.t.toLocaleString()+' kg</span></div>'
+    +(r.ism?'<div class="row"><span class="l">Ism:</span><span class="r">'+r.ism+'</span></div>':'')
+    +'<div class="line2"></div>'
+
+    /* Netto — katta */
+    +'<div class="center" style="margin:6px 0 2px">NETTO</div>'
+    +'<div class="center xl">'+r.n.toLocaleString()+' kg</div>'
+    +'<div class="line2" style="margin-top:6px"></div>'
+
+    /* QR kod */
+    +qrImg
+
+    /* Pastki qism */
+    +'<div class="center" style="font-size:11px;margin-top:4px">Ushbu chek rasmiy hujjat hisoblanadi</div>'
+    +'<div class="sep" style="margin-top:6px;font-size:11px;color:#000">- - - - - - - - - - - - - - - - -</div>'
+
+    +'</body></html>';
+
+  var fr=document.getElementById("chk-frame");
+  fr.onload=function(){
+    try{
+      fr.contentWindow.focus();
+      fr.contentWindow.print();
+    }catch(e){
+      /* Agar iframe ishlamasa — yangi oyna */
+      var w=window.open("","_blank","width=400,height=600");
+      w.document.write(html);
+      w.document.close();
+      w.onload=function(){w.print();};
+    }
+  };
+  fr.srcdoc=html;
+}
+
+function delR(id){
+  if(!confirm("Bu yozuvni o'chirmoqchimisiz?"))return;
+  R=R.filter(function(r){return r.id!==id;});
+  persistR();
+  fbRemoveOne(id);
+  updC();render();
+}
+
+/* Jadvaldan chek qayta chop etish */
+function reprint(id){
+  var rec=R.find(function(r){return r.id===id;});
+  if(rec)printChek(rec);
+}
+
+function clrForm(){
+  ["fm","fi","fb","ft"].forEach(function(i){document.getElementById(i).value="";});
+  document.getElementById("nv").textContent="0";
+  setNow();document.getElementById("fm").focus();
+}
+function clrFil(){
+  document.getElementById("qs").value="";
+  document.getElementById("qd").value="";
+  render();
+}
+
+/* Qidiruv/sana filtriga mos yozuvlarni qaytaradi (jadval va Excel bir xil ishlatadi) */
+function getFiltered(){
+  var q=(document.getElementById("qs").value||"").toLowerCase();
+  var d=document.getElementById("qd").value;
+  return R.filter(function(r){
+    var mM=r.m.toLowerCase().includes(q);
+    var mI=(r.ism||"").toLowerCase().includes(q);
+    return(!q||mM||mI)&&(!d||r.v.startsWith(d));
+  });
+}
+
+function render(){
+  var f=getFiltered();
+  var tb=document.getElementById("tb"),tf=document.getElementById("tf");
+  if(!f.length){
+    tb.innerHTML="<tr class='erow'><td colspan='9'>"
+      +"<div class='ei'>&#128203;</div>"
+      +"<div class='et'>"+(R.length?"Natija topilmadi":"Yozuvlar yo'q")+"</div>"
+      +"<div class='ed'>"+(R.length?"Filtrni o'zgartiring":"Chap tomondagi forma orqali qo'shing")+"</div>"
+      +"</td></tr>";
+    tf.innerHTML="";return;
+  }
+  tb.innerHTML=f.map(function(r,i){
+    var isQarz=!!r.qarz;
+    return "<tr>"
+      +"<td class='tm'>"+(i+1)+"</td>"
+      +"<td class='tm' style='white-space:nowrap;font-size:12px'>"+fd(r.v)+"</td>"
+      +"<td class='tb2'>"+r.m+"</td>"
+      +"<td style='text-align:right;"+MN+"'>"+r.b.toLocaleString()+"</td>"
+      +"<td style='text-align:right;"+MN+";color:var(--mu)'>"+r.t.toLocaleString()+"</td>"
+      +"<td class='tm'>"+(r.ism||"&#8212;")+"</td>"
+      +"<td class='tn' style='text-align:right'>"+r.n.toLocaleString()+"</td>"
+      +"<td style='text-align:center'>"
+        +"<button class='sm' onclick='toggleQarz("+r.id+")' style='"+(isQarz?"background:var(--rd);color:#fff;border-color:var(--rd)":"background:var(--gr);color:#fff;border-color:var(--gr)")+";font-weight:700;min-width:64px'>"
+          +(isQarz?"Qarz":"Naqt")
+        +"</button>"
+      +"</td>"
+      +"<td style='display:flex;gap:4px;padding:8px 10px'>"
+        +"<button class='sm' onclick='reprint("+r.id+")' title='Chekni qayta chop et'>&#128438;</button>"
+        +"<button class='sm smr' onclick='delR("+r.id+")'>&#10005;</button>"
+      +"</td>"
+      +"</tr>";
+  }).join("");
+  var tB=f.reduce(function(s,r){return s+r.b;},0);
+  var tT=f.reduce(function(s,r){return s+r.t;},0);
+  var tN=f.reduce(function(s,r){return s+r.n;},0);
+  var tQ=f.filter(function(r){return r.qarz;}).reduce(function(s,r){return s+r.n;},0);
+  tf.innerHTML="<tr class='tfr'>"
+    +"<td colspan='3' style='text-align:right;padding-right:10px'>Jami ("+f.length+" ta):</td>"
+    +"<td style='text-align:right;"+MN+"'>"+tB.toLocaleString()+"</td>"
+    +"<td style='text-align:right;"+MN+"'>"+tT.toLocaleString()+"</td>"
+    +"<td></td>"
+    +"<td class='tfa' style='text-align:right'>"+tN.toLocaleString()+"</td>"
+    +"<td style='text-align:center;font-size:11px;color:"+(tQ>0?"var(--rd)":"var(--mu)")+"' title='Jami qarzdagi Netto'>"+(tQ>0?tQ.toLocaleString()+" qarz":"\u2014")+"</td>"
+    +"<td></td></tr>";
+}
+
+/* Qatordagi to'lov holatini (Naqt/Qarz) almashtiradi */
+function toggleQarz(id){
+  for(var i=0;i<R.length;i++){
+    if(R[i].id===id){
+      R[i].qarz=!R[i].qarz;
+      persistR();
+      render();
+      return;
+    }
+  }
+}
+
+/* HISOBOT */
+function rTod(){var t=new Date().toISOString().slice(0,10);document.getElementById("rf").value=t;document.getElementById("rt").value=t;}
+function rWk(){var to=new Date(),fr=new Date(to);fr.setDate(to.getDate()-6);document.getElementById("rf").value=fr.toISOString().slice(0,10);document.getElementById("rt").value=to.toISOString().slice(0,10);}
+function rMo(){var t=new Date();document.getElementById("rf").value=t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-01";document.getElementById("rt").value=t.toISOString().slice(0,10);}
+function genR(){
+  var fr=document.getElementById("rf").value,to=document.getElementById("rt").value;
+  if(!fr||!to){alert("Sanalarni tanlang!");return}
+  var d=R.filter(function(r){var x=r.v.slice(0,10);return x>=fr&&x<=to;});
+  document.getElementById("rs").style.display="grid";
+  if(!d.length){
+    document.getElementById("rtw").style.display="none";
+    document.getElementById("re").style.display="block";
+    ["rc","rbr","rtr","rn"].forEach(function(i){document.getElementById(i).textContent="0";});
+    return;
+  }
+  var tB=d.reduce(function(s,r){return s+r.b;},0);
+  var tT=d.reduce(function(s,r){return s+r.t;},0);
+  var tN=d.reduce(function(s,r){return s+r.n;},0);
+  document.getElementById("rc").textContent=d.length;
+  document.getElementById("rbr").textContent=tB.toLocaleString();
+  document.getElementById("rtr").textContent=tT.toLocaleString();
+  document.getElementById("rn").textContent=tN.toLocaleString();
+  document.getElementById("rtb").innerHTML=d.map(function(r,i){
+    return "<tr>"
+      +"<td class='tm'>"+(i+1)+"</td>"
+      +"<td class='tm'>"+r.v.slice(0,10)+"</td>"
+      +"<td class='tb2'>"+r.m+"</td>"
+      +"<td style='text-align:right;"+MN+"'>"+r.b.toLocaleString()+"</td>"
+      +"<td style='text-align:right;"+MN+";color:var(--mu)'>"+r.t.toLocaleString()+"</td>"
+      +"<td class='tm'>"+(r.ism||"&#8212;")+"</td>"
+      +"<td class='tn' style='text-align:right'>"+r.n.toLocaleString()+"</td>"
+      +"</tr>";
+  }).join("");
+  document.getElementById("rtf").innerHTML="<tr class='tfr'>"
+    +"<td colspan='3' style='text-align:right;padding-right:10px'>JAMI ("+d.length+" ta):</td>"
+    +"<td style='text-align:right;"+MN+"'>"+tB.toLocaleString()+"</td>"
+    +"<td style='text-align:right;"+MN+"'>"+tT.toLocaleString()+"</td>"
+    +"<td></td>"
+    +"<td class='tfa' style='text-align:right'>"+tN.toLocaleString()+"</td>"
+    +"</tr>";
+  document.getElementById("re").style.display="none";
+  document.getElementById("rtw").style.display="block";
+}
+
+/* EXCEL — joriy qidiruv/sana filtriga mos yozuvlarni, sana bo'yicha TARTIBLAB, .xlsx qilib chiqaradi */
+function expExcel(){
+  var f=getFiltered();
+  if(!f.length){alert("Eksport uchun yozuv yo'q! Filtrni tekshiring.");return}
+  if(typeof XLSX==="undefined"){alert("Excel kutubxonasi yuklanmadi. Internetga ulanishni tekshiring.");return}
+
+  /* Sana/vaqt bo'yicha o'sish tartibida saralash (tartibsizlik muammosini tuzatadi) */
+  var sorted=f.slice().sort(function(a,b){return new Date(a.v)-new Date(b.v);});
+
+  var rows=sorted.map(function(r,i){
+    return{
+      "#":i+1,
+      "Sana":fd(r.v),
+      "Mashina":r.m,
+      "Brutto (kg)":r.b,
+      "Tara (kg)":r.t,
+      "Ism":r.ism||"",
+      "Netto (kg)":r.n,
+      "To'lov":r.qarz?"Qarz":"Naqt"
+    };
+  });
+
+  var ws=XLSX.utils.json_to_sheet(rows);
+  ws['!cols']=[{wch:5},{wch:16},{wch:14},{wch:12},{wch:12},{wch:18},{wch:12},{wch:10}];
+
+  /* A4 varag'iga sig'ishi uchun: bitta sahifa kengligiga moslash */
+  ws['!margins']={left:0.3,right:0.3,top:0.4,bottom:0.4,header:0.2,footer:0.2};
+  ws['!pageSetup']={paperSize:9,orientation:'landscape',fitToWidth:1,fitToHeight:0,scale:100};
+  ws['!fitToPage']=true;
+
+  var wb=XLSX.utils.book_new();
+  wb.Workbook={Views:[{RTL:false}]};
+  XLSX.utils.book_append_sheet(wb,ws,"Taroz");
+
+  var q=(document.getElementById("qs").value||"").trim();
+  var d=document.getElementById("qd").value;
+  var suffix=(q?"_"+q.replace(/[^a-zA-Z0-9]/g,""):"")+(d?"_"+d:"");
+  XLSX.writeFile(wb,"taroz"+suffix+"_"+new Date().toISOString().slice(0,10)+".xlsx");
+  toast("Excel fayl yuklandi ("+sorted.length+" ta yozuv)");
+}
+
+/* ══ TELEGRAM ORQALI QABUL QILISH ══
+   Telefon (istalgan joydan, internet orqali) botga "TAROZ|..." formatida
+   xabar yuboradi → PC shu xabarlarni kuzatib turadi va avtomatik
+   saqlab, chekni chop etadi. Hech qanday alohida server kerak emas. */
+var TG_TOKEN=localStorage.getItem("tg_token")||"";
+var TG_USERNAME=localStorage.getItem("tg_username")||"";
+var TG_CHAT=localStorage.getItem("tg_chat")||"";
+var TG_LAST=parseInt(localStorage.getItem("tg_last")||"0",10);
+var TG_ON=localStorage.getItem("tg_on")==="1";
+var tgTimer=null,tgBusy=false;
+var TG_LASTERR="",TG_LASTCHECK=null;
+/* Sahifa qayta ochilganda, agar oldin yoqilgan bo'lsa, kuzatishni avtomatik davom ettirish */
+if(TG_ON&&TG_TOKEN&&TG_CHAT){tgStart();}
+tgUI();
+
+/* ══ AVTOMATIK TELEGRAM ZAXIRA ══
+   Har safar R o'zgarganda (yozuv qo'shilsa/o'chirilsa/tahrirlansa) localStorage'ga
+   yoziladi VA bir necha soniyadan keyin (ketma-ket o'zgarishlarni yig'ib,
+   bittalab yuborish uchun) to'liq R massivi Telegram'ga jo'natiladi —
+   LEKIN har safar yangi xabar sifatida EMAS: bitta "ko'rinmas" (silent,
+   bildirishnomasiz) xabar doim TAHRIRLANIB turadi (editMessageMedia), shu
+   sababli telefoningiz har o'zgarishda jiring-jiring qilmaydi. Yangi,
+   ko'zga tashlanadigan xabar faqat 💾 "Zaxira" tugmasi bosilganda yuboriladi. */
+var tgBackupTimer=null;
+function persistR(){
+  localStorage.setItem("tv5",JSON.stringify(R));
+  scheduleTgBackup();
+  fbPushAll();
+}
+function scheduleTgBackup(){
+  if(!TG_TOKEN||!TG_CHAT)return;
+  clearTimeout(tgBackupTimer);
+  tgBackupTimer=setTimeout(sendTgBackupNow,4000);
+}
+function sendTgBackupNow(){
+  if(!TG_TOKEN||!TG_CHAT||!R.length)return;
+  var today=new Date().toISOString().slice(0,10);
+  var caption="\uD83D\uDD07 Fon zaxirasi (avtomatik, tinch) \u2022 "+R.length+" ta yozuv \u2022 "+new Date().toLocaleString("uz-UZ");
+  var blob=new Blob([JSON.stringify(R)],{type:"application/json"});
+  var filename="taroz_zaxira_"+today+"_auto.json";
+  var msgId=localStorage.getItem("tg_backup_msgid");
+
+  function sendFresh(){
+    var fd=new FormData();
+    fd.append("chat_id",TG_CHAT);
+    fd.append("document",blob,filename);
+    fd.append("caption",caption);
+    fd.append("disable_notification","true"); /* bildirishnomasiz - telefon jim qoladi */
+    fetch("https://api.telegram.org/bot"+TG_TOKEN+"/sendDocument",{method:"POST",body:fd})
+      .then(function(r){return r.json();})
+      .then(function(j){
+        if(j&&j.ok&&j.result&&j.result.message_id){
+          localStorage.setItem("tg_backup_msgid",String(j.result.message_id));
+          localStorage.setItem("tg_last_autobackup",String(Date.now()));
+        }
+      })
+      .catch(function(){});
+  }
+
+  if(!msgId){sendFresh();return}
+
+  /* Mavjud "ko'rinmas" xabarni yangi fayl bilan tinchgina almashtiramiz — yangi xabar yaratilmaydi */
+  var fd=new FormData();
+  fd.append("chat_id",TG_CHAT);
+  fd.append("message_id",msgId);
+  fd.append("media",JSON.stringify({type:"document",media:"attach://bk",caption:caption}));
+  fd.append("bk",blob,filename);
+  fetch("https://api.telegram.org/bot"+TG_TOKEN+"/editMessageMedia",{method:"POST",body:fd})
+    .then(function(r){return r.json();})
+    .then(function(j){
+      if(j&&j.ok){
+        localStorage.setItem("tg_last_autobackup",String(Date.now()));
+      }else{
+        /* Xabar o'chirilgan yoki topilmadi bo'lsa — yangisini yaratamiz */
+        sendFresh();
+      }
+    })
+    .catch(function(){});
+}
+
+/* 💾 "Zaxira" tugmasi qo'lda bosilganda — bu safar ATAYLAB ko'rinadigan,
+   bildirishnomali yangi xabar yuboriladi (fon-zaxiradan farqli o'laroq). */
+function tgSendManualBackup(){
+  if(!TG_TOKEN||!TG_CHAT||!R.length)return;
+  var today=new Date().toISOString().slice(0,10);
+  var fd=new FormData();
+  fd.append("chat_id",TG_CHAT);
+  fd.append("document",new Blob([JSON.stringify(R)],{type:"application/json"}),"taroz_zaxira_"+today+".json");
+  fd.append("caption","\uD83D\uDCBE Qo'lda so'ralgan zaxira \u2022 "+R.length+" ta yozuv \u2022 "+new Date().toLocaleString("uz-UZ"));
+  fetch("https://api.telegram.org/bot"+TG_TOKEN+"/sendDocument",{method:"POST",body:fd}).catch(function(){});
+}
+
+/* Sahifa yopilayotganda ham oxirgi holatni tinchgina yuborishga urinib ko'ramiz */
+window.addEventListener("beforeunload",function(){
+  if(TG_TOKEN&&TG_CHAT&&R.length&&tgBackupTimer){
+    try{
+      var today=new Date().toISOString().slice(0,10);
+      var fd=new FormData();
+      fd.append("chat_id",TG_CHAT);
+      fd.append("document",new Blob([JSON.stringify(R)],{type:"application/json"}),"taroz_zaxira_"+today+"_auto.json");
+      fd.append("caption","\uD83D\uDD07 Fon zaxirasi (chiqishda)\u2022 "+R.length+" ta yozuv");
+      fd.append("disable_notification","true");
+      navigator.sendBeacon&&navigator.sendBeacon("https://api.telegram.org/bot"+TG_TOKEN+"/sendDocument",fd);
+    }catch(e){}
+  }
+});
+
+/* ══ TELEGRAM SOZLAMALARI MODAL ══ */
+var tgListenTimer=null,tgListenSince=0;
+
+function tgOpenModal(){
+  document.getElementById("tgOvl").classList.add("on");
+  document.getElementById("mTokenIn").value=TG_TOKEN;
+  tgRenderModalState();
+  tgRenderFarmers();
+  if(TG_TOKEN)tgRefreshDiag();
+}
+function tgCloseModal(){
+  document.getElementById("tgOvl").classList.remove("on");
+  tgListenStop();
+}
+
+function tgRenderModalState(){
+  var dot=document.getElementById("mdotConn"),txt=document.getElementById("mtxtConn");
+  var tokenSec=document.getElementById("mTokenSec"),chatSec=document.getElementById("mChatSec"),onSec=document.getElementById("mOnSec");
+  if(!TG_TOKEN){
+    dot.className="mdot";txt.textContent="Token kiritilmagan";
+    chatSec.style.display="none";onSec.style.display="none";
+    return;
+  }
+  tokenSec.querySelector("h4").innerHTML="1&#65039;&#8419; Bot token &#10003; ("+(TG_USERNAME?"@"+TG_USERNAME:"saqlandi")+")";
+  chatSec.style.display="";
+  if(!TG_CHAT){
+    dot.className="mdot wait";txt.textContent="Token saqlandi. Operator ulanishi kutilmoqda.";
+    onSec.style.display="none";
+    return;
+  }
+  onSec.style.display="";
+  document.getElementById("mOnToggle").className="mtoggle"+(TG_ON?" on":"");
+  if(!TG_ON){
+    dot.className="mdot";txt.textContent="Ulangan, lekin kuzatish o'chirilgan";
+  }else if(TG_LASTERR){
+    dot.className="mdot err";txt.textContent="Xato: "+TG_LASTERR;
+  }else{
+    var chk=TG_LASTCHECK?TG_LASTCHECK.toLocaleTimeString("uz-UZ"):"hali yo'q";
+    dot.className="mdot ok";txt.textContent="Ishlayapti \u2713 (oxirgi tekshiruv: "+chk+")";
+  }
+}
+
+function tgSaveToken(){
+  var t=document.getElementById("mTokenIn").value.trim();
+  if(!t){toast("Token kiritilmadi");return}
+  TG_TOKEN=t;
+  localStorage.setItem("tg_token",TG_TOKEN);
+  TG_USERNAME="";localStorage.removeItem("tg_username");
+  toast("Token saqlandi, tekshirilmoqda...");
+  fetch("https://api.telegram.org/bot"+TG_TOKEN+"/getMe")
+    .then(function(r){return r.json();})
+    .then(function(me){
+      if(me.ok&&me.result&&me.result.username){
+        TG_USERNAME=me.result.username;
+        localStorage.setItem("tg_username",TG_USERNAME);
+        toast("Bot topildi: @"+TG_USERNAME+" \u2713");
+      }else{
+        toast("\u274C Token noto'g'ri: "+(me.description||"tekshiring"));
+      }
+      tgRenderModalState();
+    })
+    .catch(function(){toast("Internet xatosi \u2014 qayta urinib ko'ring");});
+}
+
+/* Chat ID'ni ANIQ topish: "eng oxirgi kelgan xabar"ni emas, aynan shu tugma
+   bosilgandan KEYIN kelgan /start xabarini kutamiz — shu bilan tasodifan
+   boshqa birovning (masalan mijozning) chatini operator qilib qo'yish xatosi
+   oldini olinadi. */
+function tgListenStart(){
+  if(!TG_TOKEN){toast("Avval tokenni saqlang");return}
+  var btn=document.getElementById("mChatBtn");
+  btn.disabled=true;btn.textContent="\u23F3 Kutilmoqda... telefoningizdan /start yozing";
+  document.getElementById("mChatNote").innerHTML="Telegram ilovasida botni oching va <b>/start</b> yuboring. (60 soniya kutamiz)";
+  tgListenSince=Date.now();
+  var deadline=tgListenSince+60000;
+  function poll(){
+    fetch("https://api.telegram.org/bot"+TG_TOKEN+"/getUpdates?offset=-20")
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(d.ok&&d.result&&d.result.length){
+          for(var i=d.result.length-1;i>=0;i--){
+            var msg=d.result[i].message;
+            if(!msg||!msg.text||!msg.date)continue;
+            var msgTime=msg.date*1000;
+            if(msgTime>=tgListenSince-3000&&/^\/start\b/i.test(msg.text.trim())){
+              tgListenStop();
+              TG_CHAT=String(msg.chat.id);
+              localStorage.setItem("tg_chat",TG_CHAT);
+              TG_ON=true;localStorage.setItem("tg_on","1");
+              if(tgTimer)tgStop();
+              tgStart();
+              btn.disabled=false;btn.textContent="\u2705 Ulandi";
+              toast("Operator ulandi \u2713 Chat ID: "+TG_CHAT);
+              tgRenderModalState();
+              return;
+            }
+          }
+        }
+        if(Date.now()<deadline){tgListenTimer=setTimeout(poll,2000);}
+        else{
+          btn.disabled=false;btn.textContent="\uD83D\uDD12 /start kutilmoqda...";
+          document.getElementById("mChatNote").innerHTML="Vaqt tugadi, /start kelmadi. Qaytadan urinib ko'ring.";
+        }
+      })
+      .catch(function(){
+        if(Date.now()<deadline){tgListenTimer=setTimeout(poll,2000);}
+        else{btn.disabled=false;btn.textContent="\uD83D\uDD12 /start kutilmoqda...";}
+      });
+  }
+  poll();
+}
+function tgListenStop(){
+  if(tgListenTimer){clearTimeout(tgListenTimer);tgListenTimer=null;}
+}
+
+function tgToggle(){
+  if(!TG_TOKEN||!TG_CHAT){tgOpenModal();return}
+  TG_ON=!TG_ON;
+  localStorage.setItem("tg_on",TG_ON?"1":"0");
+  if(TG_ON){tgStart();toast("Telegram: yoqildi, kuzatilmoqda...");}
+  else{tgStop();toast("Telegram: o'chirildi");}
+  tgUI();tgRenderModalState();
+}
+
+/* ══ ZAXIRA NUSXA (BACKUP) VA TIKLASH ══ */
+function checkDailyBackup(){
+  if(!R.length)return; /* bo'sh arxivni zaxiralashning ma'nosi yo'q */
+  var today=new Date().toISOString().slice(0,10);
+  if(localStorage.getItem("last_backup")!==today)doBackup(true);
+}
+
+function doBackup(silent){
+  if(!R.length){if(!silent)alert("Zaxiralash uchun yozuv yo'q");return}
+  var blob=new Blob([JSON.stringify(R)],{type:"application/json"});
+  var a=document.createElement("a");
+  var today=new Date().toISOString().slice(0,10);
+  a.href=URL.createObjectURL(blob);
+  a.download="taroz_zaxira_"+today+".json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  localStorage.setItem("last_backup",today);
+  toast(silent?"Kunlik avtomatik zaxira yaratildi \u2713":"Zaxira nusxa saqlandi \u2713 ("+R.length+" ta yozuv)");
+  if(!silent)tgSendManualBackup(); /* qo'lda bosilganda Telegram'ga ham ko'rinadigan qilib yuboriladi */
+}
+
+function handleRestoreFile(input){
+  var file=input.files[0];
+  if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=JSON.parse(e.target.result);
+      if(!Array.isArray(data))throw new Error("fayl formati mos emas");
+      var ids={};
+      R.forEach(function(r){ids[r.id]=1;});
+      var added=0;
+      data.forEach(function(r){
+        if(r&&r.id&&r.m&&!ids[r.id]){
+          R.push(r);ids[r.id]=1;added+=1;
+        }
+      });
+      R.sort(function(a,b){return b.id-a.id;});
+      persistR();
+      render();
+      alert("Tiklandi \u2713\n"+added+" ta yangi yozuv qo'shildi.\nMavjud yozuvlar o'zgarishsiz qoldi (ular qayta yozilmaydi).");
+    }catch(err){
+      alert("Faylni o'qib bo'lmadi: "+err.message+"\nBu \"taroz_zaxira_...json\" fayli ekanligiga ishonch hosil qiling.");
+    }
+    input.value="";
+  };
+  reader.readAsText(file);
+}
+
+/* ══ FERMERLAR (ism+parol bilan ro'yxatga olish, Telegram orqali avtomatik xabar olish uchun) ══ */
+function tgRenderFarmers(){
+  var box=document.getElementById("mFarmerList");
+  if(!box)return;
+  var map=JSON.parse(localStorage.getItem("farmer_pass")||"{}");
+  var fmap=JSON.parse(localStorage.getItem("farmer_map")||"{}");
+  var names=Object.keys(map);
+  if(!names.length){box.innerHTML='<div class="fempty">Hali fermer qo\'shilmagan</div>';return}
+  box.innerHTML=names.map(function(n){
+    var ulangan=fmap[n]?" \u2705":" \u2014 hali botga ulanmagan";
+    return '<div class="fitem"><span>'+n.replace(/</g,"&lt;")+ulangan+'</span>'
+      +'<button class="fdel" title="O\'chirish" onclick="tgDelFarmer(\''+n.replace(/'/g,"\\'")+'\')">&#10005;</button></div>';
+  }).join("");
+}
+function tgAddFarmer(){
+  var nameIn=document.getElementById("mFarmerName"),passIn=document.getElementById("mFarmerPass");
+  var name=nameIn.value.trim(),pass=passIn.value.trim();
+  if(!name){toast("Ism kiriting");return}
+  if(!pass){toast("Parol kiriting");return}
+  var map=JSON.parse(localStorage.getItem("farmer_pass")||"{}");
+  map[name.toLowerCase()]=pass;
+  localStorage.setItem("farmer_pass",JSON.stringify(map));
+  nameIn.value="";passIn.value="";
+  tgRenderFarmers();
+  toast("\""+name+"\" qo'shildi \u2713 Parolni fermerga ayting");
+}
+function tgDelFarmer(key){
+  var map=JSON.parse(localStorage.getItem("farmer_pass")||"{}");
+  delete map[key];
+  localStorage.setItem("farmer_pass",JSON.stringify(map));
+  var fmap=JSON.parse(localStorage.getItem("farmer_map")||"{}");
+  delete fmap[key];
+  localStorage.setItem("farmer_map",JSON.stringify(fmap));
+  tgRenderFarmers();
+  toast("O'chirildi");
+}
+
+function tgUI(){
+  var b=document.getElementById("tgbtn");
+  if(!b)return;
+  b.innerHTML=TG_ON?"&#128245;":"&#128244;";
+  b.style.color=TG_ON?"var(--gr)":"";
+  var chk=TG_LASTCHECK?TG_LASTCHECK.toLocaleTimeString("uz-UZ"):"hali yo'q";
+  if(!TG_TOKEN||!TG_CHAT){
+    b.title="Telegram sozlanmagan (bosing)";
+  }else if(!TG_ON){
+    b.title="Telegram: o'chirilgan (bosing)";
+  }else if(TG_LASTERR){
+    b.title="Telegram: XATO ("+chk+")\n"+TG_LASTERR;
+    b.style.color="var(--rd)";
+  }else{
+    b.title="Telegram: ishlayapti \u2713 (oxirgi tekshiruv: "+chk+")";
+  }
+  tgRenderModalState();
+}
+
+/* Muammoni aniqlash: token, chat id va oxirgi xabarlarni tekshiradi — natija endi
+   modal ichidagi jurnalga (mDiagLog) chiqadi, alert() bilan bezovta qilinmaydi. */
+function tgRefreshDiag(){
+  var log=document.getElementById("mDiagLog");
+  if(!log)return;
+  if(!TG_TOKEN){log.textContent="\u274C Token kiritilmagan";return}
+  log.textContent="Tekshirilmoqda...";
+  fetch("https://api.telegram.org/bot"+TG_TOKEN+"/getMe")
+    .then(function(r){return r.json();})
+    .then(function(me){
+      var lines=[];
+      if(!me.ok){
+        lines.push("\u274C TOKEN noto'g'ri: "+(me.description||"tekshiring"));
+        log.textContent=lines.join("\n");
+        return;
+      }
+      lines.push("\u2705 Bot: @"+me.result.username);
+      lines.push(TG_CHAT?"\u2705 Chat ID: "+TG_CHAT:"\u274C Operator ulanmagan");
+      lines.push(TG_ON?"\u2705 Kuzatish YOQILGAN":"\u23F8 Kuzatish o'chirilgan");
+      fetch("https://api.telegram.org/bot"+TG_TOKEN+"/getUpdates?offset=-5")
+        .then(function(r){return r.json();})
+        .then(function(d){
+          if(d.ok&&d.result&&d.result.length){
+            lines.push("",'So\u2019nggi xabarlar:');
+            d.result.slice(-5).forEach(function(u){
+              if(!u.message)return;
+              var mm=u.message;
+              var match=String(mm.chat.id)===String(TG_CHAT)?"\u2705":"\u26A0\uFE0F boshqa";
+              lines.push(match+" "+mm.chat.id+": "+(mm.text||"(matn yo'q)"));
+            });
+          }else{
+            lines.push("","\u26A0\uFE0F Hali xabar kelmagan");
+          }
+          if(TG_LASTERR)lines.push("","\u26A0\uFE0F Oxirgi xato: "+TG_LASTERR);
+          log.textContent=lines.join("\n");
+        })
+        .catch(function(){log.textContent=lines.join("\n")+"\n\u274C getUpdates xato berdi";});
+    })
+    .catch(function(){log.textContent="\u274C Internetga ulanib bo'lmadi yoki token noto'g'ri";});
+}
+
+function tgStart(){
+  if(tgTimer)return;
+  tgTimer=setInterval(tgPoll,4000);
+  tgPoll();
+}
+function tgStop(){
+  if(tgTimer){clearInterval(tgTimer);tgTimer=null;}
+}
+
+function tgPoll(){
+  if(tgBusy||!TG_TOKEN)return;
+  tgBusy=true;
+  fetch("https://api.telegram.org/bot"+TG_TOKEN+"/getUpdates?offset="+(TG_LAST+1)+"&timeout=0")
+    .then(function(r){return r.json();})
+    .then(function(d){
+      tgBusy=false;
+      TG_LASTCHECK=new Date();
+      if(!d.ok){TG_LASTERR="API xato: "+(d.description||"noma'lum");tgUI();return}
+      TG_LASTERR="";tgUI();
+      if(!d.result||!d.result.length)return;
+      d.result.forEach(function(u){
+        TG_LAST=u.update_id;
+        localStorage.setItem("tg_last",TG_LAST);
+        var msg=u.message;
+        if(!msg||!msg.text)return;
+
+        /* QR kod orqali skanerlangan chek havolasi (/start chek_12345) — har qanday chatdan bo'lishi mumkin */
+        var chekMatch=msg.text.trim().match(/^\/start\s+chek_(\d+)/i);
+        if(chekMatch){
+          tgSendReceiptById(msg.chat.id,chekMatch[1]);
+          return;
+        }
+
+        /* Operator (sozlangan Chat ID)dan kelayotgan xabarlar */
+        if(String(msg.chat.id)===String(TG_CHAT)){
+          var raw=msg.text.trim();
+
+          /* Operatorning ilk /start xabari - tugmali menyuni ko'rsatish */
+          if(/^\/start/i.test(raw)){
+            tgSendTo(msg.chat.id,"\uD83D\uDC4B Xush kelibsiz!\n\nYangi tarozi yozuvini kiritish uchun pastdagi tugmani bosing.",TG_OP_KB);
+            return;
+          }
+
+          /* Bosqichma-bosqich yozuv kiritish rejimi (tugma yoki yozib buyruq) */
+          if(raw==="\uD83C\uDD95 Yangi yozuv"||/^\/?yangi$/i.test(raw)){
+            tgStartWizard(msg.chat.id);return;
+          }
+          if(raw==="\u274C Bekor qilish"||/^\/?bekor$/i.test(raw)){
+            delete tgWizard[msg.chat.id];tgWizardSave();
+            tgSendTo(msg.chat.id,"Bekor qilindi.",TG_OP_KB);
+            return;
+          }
+          if(tgWizard[msg.chat.id]){
+            tgWizardStep(msg.chat.id,msg.text);
+            return;
+          }
+
+          /* Ilg'or foydalanuvchilar uchun: TAROZ| formatidagi to'g'ridan-to'g'ri xabar */
+          var norm=raw.replace(/\s*\|\s*/g,"|").replace(/\s*=\s*/g,"=");
+          if(norm.toUpperCase().indexOf("TAROZ|")===0){tgHandle(norm);return}
+        }
+
+        /* Boshqa barcha holatlar -> mashina raqami bo'yicha tarix so'rovi + ro'yxatdan o'tish */
+        tgHandleCustomerMsg(msg.chat.id,msg.text);
+      });
+    })
+    .catch(function(e){
+      tgBusy=false;
+      TG_LASTCHECK=new Date();
+      TG_LASTERR="Ulanish xatosi: "+(e&&e.message?e.message:"internet yo'q yoki token noto'g'ri");
+      tgUI();
+    });
+}
+
+/* Mijoz botga o'z mashina raqamini yozadi -> tarixi ko'rsatiladi va kelgusi cheklarga ro'yxatdan o'tkaziladi */
+/* ══ BOSQICHMA-BOSQICH YOZUV KIRITISH (operator uchun, telefonda qulay bo'lishi uchun) ══ */
+var tgWizard=JSON.parse(localStorage.getItem("tg_wizard")||"{}"); /* {chatId:{step,m,b,t,ism,taraKnown}} */
+var tgFarmerWizard=JSON.parse(localStorage.getItem("tg_farmer_wizard")||"{}"); /* {chatId:{step,ism}} */
+function tgFarmerWizardSave(){localStorage.setItem("tg_farmer_wizard",JSON.stringify(tgFarmerWizard));}
+
+function tgFarmerStep(chatId,text){
+  var w=tgFarmerWizard[chatId];
+  if(!w)return;
+  var t=text.trim();
+  if(w.step==="ism"){
+    w.ism=t;
+    w.step="parol";
+    tgFarmerWizardSave();
+    tgSendTo(chatId,"Parolni yozing (operator sizga bergan):");
+    return;
+  }
+  if(w.step==="parol"){
+    var map=JSON.parse(localStorage.getItem("farmer_pass")||"{}");
+    var key=w.ism.trim().toLowerCase();
+    if(map[key]&&map[key]===t){
+      var fmap=JSON.parse(localStorage.getItem("farmer_map")||"{}");
+      fmap[key]=String(chatId);
+      localStorage.setItem("farmer_map",JSON.stringify(fmap));
+      delete tgFarmerWizard[chatId];tgFarmerWizardSave();
+      tgSendTo(chatId,"\u2705 Muvaffaqiyatli ro'yxatdan o'tdingiz, "+w.ism+"!\n\nEndi sizning nomingizga kiritilgan barcha mashinalar haqida ma'lumot avtomatik shu yerga keladi.");
+    }else{
+      delete tgFarmerWizard[chatId];tgFarmerWizardSave();
+      tgSendTo(chatId,"\u274C Ism yoki parol noto'g'ri.\n\nOperator bilan bog'laning. Qaytadan urinish uchun \"Fermer\" deb yozing.");
+    }
+    return;
+  }
+}
+function tgWizardSave(){localStorage.setItem("tg_wizard",JSON.stringify(tgWizard));}
+
+function tgStartWizard(chatId){
+  tgWizard[chatId]={step:"m"};
+  tgWizardSave();
+  tgSendTo(chatId,"\uD83D\uDCDD Yangi yozuv\n\nMashina raqamini yozing:",TG_OP_KB);
+}
+
+/* Shu mashina uchun arxivdagi eng so'nggi Tara qiymatini qidiradi (dasturdagi fmAutoTara bilan bir xil mantiq) */
+function tgFindTara(m){
+  for(var i=0;i<R.length;i++){
+    if(R[i].m===m)return R[i].t;
+  }
+  return null;
+}
+/* Shu mashina uchun arxivdagi eng so'nggi Fermer ismini qidiradi */
+function tgFindIsm(m){
+  for(var i=0;i<R.length;i++){
+    if(R[i].m===m&&R[i].ism)return R[i].ism;
+  }
+  return "";
+}
+
+function tgWizardStep(chatId,text){
+  var w=tgWizard[chatId];
+  if(!w)return;
+  var t=text.trim();
+
+  if(w.step==="m"){
+    w.m=t.toUpperCase().replace(/\s+/g," ");
+    var known=tgFindTara(w.m);
+    w.ism=tgFindIsm(w.m);
+    if(known!==null){
+      w.t=known;w.taraKnown=true;
+      w.step="b";tgWizardSave();
+      var extra=w.ism?(" Fermer ham eslab qolindi: "+w.ism+"."):"";
+      tgSendTo(chatId,"\u2705 \""+w.m+"\" topildi. Tara: "+known.toLocaleString()+" kg."+extra+"\n\nBrutto (kg) necha? (Faqat raqam yozing)",TG_OP_KB);
+    }else{
+      w.taraKnown=false;
+      w.step="b";tgWizardSave();
+      tgSendTo(chatId,"\uD83C\uDD95 Yangi mashina. Brutto (kg) necha? (Faqat raqam yozing)",TG_OP_KB);
+    }
+    return;
+  }
+
+  if(w.step==="b"){
+    var b=parseFloat(t.replace(",","."));
+    if(!b||b<=0){tgSendTo(chatId,"Iltimos, faqat musbat raqam kiriting (masalan: 15000)",TG_OP_KB);return}
+    w.b=b;
+    if(w.taraKnown){
+      if(w.ism){tgWizardFinish(chatId,w);return}
+      w.step="i";tgWizardSave();
+      tgSendTo(chatId,"Fermer ismi? (Kerak bo'lmasa \"-\" deb yozing)",TG_OP_KB);
+    }else{
+      w.step="t";tgWizardSave();
+      tgSendTo(chatId,"Tara (kg) necha? (Bilmasangiz \"0\" deb yozing)",TG_OP_KB);
+    }
+    return;
+  }
+
+  if(w.step==="t"){
+    var tv=parseFloat(t.replace(",","."));
+    w.t=(!isNaN(tv)&&tv>=0)?tv:0;
+    if(w.ism){tgWizardFinish(chatId,w);return}
+    w.step="i";tgWizardSave();
+    tgSendTo(chatId,"Fermer ismi? (Kerak bo'lmasa \"-\" deb yozing)",TG_OP_KB);
+    return;
+  }
+
+  if(w.step==="i"){
+    w.ism=(t==="-"||/^yo'?q$/i.test(t))?"":t;
+    tgWizardFinish(chatId,w);
+    return;
+  }
+}
+
+function tgWizardFinish(chatId,w){
+  var rec={id:Date.now(),v:new Date().toISOString().slice(0,16),m:w.m,ism:w.ism,b:w.b,t:w.t,n:Math.max(0,w.b-w.t),qarz:false};
+  R.unshift(rec);
+  persistR();
+  updC();render();
+  printChek(rec);
+  tgNotifyCustomer(rec);
+  delete tgWizard[chatId];tgWizardSave();
+  tgSendTo(chatId,"\u2705 Saqlandi va chek chiqarildi!\n\nMashina: "+rec.m
+    +(rec.ism?"\nFermer: "+rec.ism:"")
+    +"\nBrutto: "+rec.b.toLocaleString()+" kg"
+    +"\nTara: "+rec.t.toLocaleString()+" kg"
+    +"\nNetto: "+rec.n.toLocaleString()+" kg"
+    +"\n\nYangi yozuv uchun tugmani bosing.",TG_OP_KB);
+  toast("\uD83D\uDCF1 Telegram orqali qabul qilindi: "+rec.m);
+}
+
+
+function tgHandleCustomerMsg(chatId,rawText){
+  var raw0=rawText.trim();
+
+  if(raw0.indexOf("/")===0){
+    tgSendTo(chatId,"Salom! Mashinangizning davlat raqamini yozing (masalan: 01A123BA) \u2014 sizga so'nggi tashriflaringizni ko'rsataman va kelgusi cheklarni ham shu yerga yuboraman.\n\nAgar fermer bo'lsangiz, \"Fermer\" deb yozing.");
+    return;
+  }
+
+  /* Fermer sifatida ro'yxatdan o'tish (ism+parol) */
+  if(/^fermer$/i.test(raw0)){
+    tgFarmerWizard[chatId]={step:"ism"};
+    tgFarmerWizardSave();
+    tgSendTo(chatId,"\uD83C\uDF3E Fermer sifatida ro'yxatdan o'tish\n\nIsmingizni yozing:");
+    return;
+  }
+  if(tgFarmerWizard[chatId]){
+    tgFarmerStep(chatId,rawText);
+    return;
+  }
+
+  var q=rawText.replace(/[^A-Za-z0-9]/g,"").toUpperCase();
+  if(!q||q.length<3)return; /* juda qisqa/bo'sh xabarlarni e'tiborsiz qoldiradi */
+  var map=JSON.parse(localStorage.getItem("cust_map")||"{}");
+  map[q]=String(chatId);
+  localStorage.setItem("cust_map",JSON.stringify(map));
+  var matches=R.filter(function(r){return r.m.replace(/[^A-Za-z0-9]/g,"").toUpperCase()===q;});
+  var text;
+  if(!matches.length){
+    text="Salom! \""+rawText.trim()+"\" raqami bo'yicha hozircha arxivda yozuv topilmadi.\n\nEndi shu raqam bilan yangi chek chiqarilganda, u avtomatik ravishda shu yerga yuboriladi.";
+  }else{
+    matches=matches.slice().sort(function(a,b){return new Date(b.v)-new Date(a.v);});
+    var lines=matches.slice(0,5).map(function(r){
+      return "\u2022 "+fd(r.v)+" \u2014 Netto: "+r.n.toLocaleString()+" kg";
+    });
+    text="Salom! \""+matches[0].m+"\" bo'yicha so'nggi tashriflar:\n\n"+lines.join("\n")
+      +(matches.length>5?"\n\n...va yana "+(matches.length-5)+" ta yozuv":"")
+      +"\n\nEndi yangi cheklar ham avtomatik shu yerga yuboriladi.";
+  }
+  tgSendTo(chatId,text);
+}
+
+var TG_OP_KB={keyboard:[["\uD83C\uDD95 Yangi yozuv"],["\u274C Bekor qilish"]],resize_keyboard:true};
+
+function tgSendTo(chatId,text,keyboard){
+  if(!TG_TOKEN)return;
+  var url="https://api.telegram.org/bot"+TG_TOKEN+"/sendMessage?chat_id="+encodeURIComponent(chatId)+"&text="+encodeURIComponent(text);
+  if(keyboard)url+="&reply_markup="+encodeURIComponent(JSON.stringify(keyboard));
+  fetch(url).catch(function(){});
+}
+
+/* Yangi chek yaratilganda, agar shu mashina uchun mijoz ro'yxatdan o'tgan bo'lsa, chekni unga ham yuboradi */
+/* QR kod skanerlanganda (chek_ID orqali) shu yozuvni topib, chatga yuboradi va mijozni shu mashinaga ro'yxatdan o'tkazadi */
+function tgSendReceiptById(chatId,idStr){
+  var id=parseFloat(idStr);
+  var rec=null;
+  for(var i=0;i<R.length;i++){
+    if(R[i].id===id){rec=R[i];break}
+  }
+  if(!rec){
+    tgSendTo(chatId,"Kechirasiz, bu chek arxivda topilmadi (o'chirilgan bo'lishi mumkin).");
+    return;
+  }
+  var text="\uD83E\uDDFE Tarozi cheki\n\n"
+    +"Mashina: "+rec.m
+    +(rec.ism?"\nIsm: "+rec.ism:"")
+    +"\nSana: "+fd(rec.v)
+    +"\nBrutto: "+rec.b.toLocaleString()+" kg"
+    +"\nTara: "+rec.t.toLocaleString()+" kg"
+    +"\nNetto: "+rec.n.toLocaleString()+" kg";
+  tgSendTo(chatId,text);
+  /* Shu mashina uchun kelgusi cheklar ham avtomatik shu chatga yuborilishi uchun ro'yxatdan o'tkazamiz */
+  var map=JSON.parse(localStorage.getItem("cust_map")||"{}");
+  map[rec.m.replace(/[^A-Za-z0-9]/g,"").toUpperCase()]=String(chatId);
+  localStorage.setItem("cust_map",JSON.stringify(map));
+}
+
+function tgNotifyCustomer(rec){
+  if(!TG_TOKEN)return;
+  var text="\uD83E\uDDFE Yangi chek\n\nMashina: "+rec.m
+    +(rec.ism?"\nIsm: "+rec.ism:"")
+    +"\nSana: "+fd(rec.v)
+    +"\nBrutto: "+rec.b.toLocaleString()+" kg"
+    +"\nTara: "+rec.t.toLocaleString()+" kg"
+    +"\nNetto: "+rec.n.toLocaleString()+" kg";
+
+  /* Mashina raqami bo'yicha ro'yxatdan o'tgan mijoz */
+  var map=JSON.parse(localStorage.getItem("cust_map")||"{}");
+  var key=rec.m.replace(/[^A-Za-z0-9]/g,"").toUpperCase();
+  var chatId=map[key];
+  if(chatId)tgSendTo(chatId,text);
+
+  /* Ism (fermer) bo'yicha ro'yxatdan o'tgan fermer — mashina raqamidan qat'i nazar */
+  if(rec.ism){
+    var fmap=JSON.parse(localStorage.getItem("farmer_map")||"{}");
+    var fchat=fmap[rec.ism.trim().toLowerCase()];
+    if(fchat)tgSendTo(fchat,text);
+  }
+}
+
+/* Format: TAROZ|m=01A123BA|b=1250|t=850|i=Alisher (probel/katta-kichik harf muhim emas) */
+function tgHandle(text){
+  var f={};
+  text.split("|").forEach(function(p){
+    var kv=p.split("=");
+    if(kv.length>=2)f[kv[0].trim().toLowerCase()]=kv.slice(1).join("=").trim();
+  });
+  var m=(f.m||"").trim().toUpperCase();
+  var b=parseFloat(f.b);
+  var t=parseFloat(f.t)||0;
+  var ism=(f.i||"").trim();
+  if(!m||!b||b<=0){toast("Telegram: noto'g'ri xabar, o'tkazib yuborildi");return}
+  var rec={id:Date.now(),v:new Date().toISOString().slice(0,16),m:m,ism:ism,b:b,t:t,n:Math.max(0,b-t),qarz:false};
+  R.unshift(rec);
+  persistR();
+  updC();render();
+  printChek(rec);
+  tgNotifyCustomer(rec);
+  toast("&#128241; Telefondan qabul qilindi: "+m);
+}
+
+/* Helpers */
+function fd(v){
+  if(!v)return"\u2014";
+  var d=new Date(v);
+  return d.toLocaleDateString("uz-UZ")+" "+d.toLocaleTimeString("uz-UZ",{hour:"2-digit",minute:"2-digit"});
+}
+function updC(){
+  document.getElementById("ac").textContent=R.length;
+  var t=new Date().toISOString().slice(0,10);
+  document.getElementById("bc").textContent=R.filter(function(r){return r.v.startsWith(t);}).length;
+}
+function toast(msg){
+  var el=document.getElementById("toast");
+  el.textContent="\u2705 "+msg;el.classList.add("on");
+  setTimeout(function(){el.classList.remove("on");},2500);
+}
+function shk(id){
+  var el=document.getElementById(id);
+  el.style.borderColor="var(--rd)";el.focus();
+  setTimeout(function(){el.style.borderColor="";},1400);
+}
+
+/* Tabs */
+var ratMode="ism";
+document.querySelectorAll(".tab").forEach(function(tab){
+  tab.addEventListener("click",function(){
+    var n=tab.dataset.p;
+    document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("on");});
+    document.querySelectorAll(".pnl").forEach(function(p){p.classList.remove("on");});
+    tab.classList.add("on");
+    document.getElementById("p"+n).classList.add("on");
+    if(n==="r")renderRating();
+    if(n==="q")renderDebts();
+  });
+});
+
+function setRatMode(m){
+  ratMode=m;
+  document.getElementById("ratB1").classList.toggle("on",m==="ism");
+  document.getElementById("ratB2").classList.toggle("on",m==="mashina");
+  document.getElementById("ratLbl").textContent=m==="ism"?"Ism":"Mashina";
+  renderRating();
+}
+
+/* Kim ko'proq tarozga kelgani bo'yicha reyting (Ism yoki Mashina raqami bo'yicha guruhlab) */
+function renderRating(){
+  var g={};
+  R.forEach(function(r){
+    var key=ratMode==="ism"?(r.ism||"").trim():(r.m||"").trim();
+    if(!key)return; /* Ism bo'sh bo'lsa reytingga kirmaydi */
+    if(!g[key])g[key]={key:key,count:0,netto:0,last:r.v};
+    g[key].count+=1;
+    g[key].netto+=r.n;
+    if(r.v>g[key].last)g[key].last=r.v;
+  });
+  var list=Object.keys(g).map(function(k){return g[k];});
+  list.sort(function(a,b){return b.count-a.count;});
+  var tb=document.getElementById("ratb");
+  var wrap=document.getElementById("ratw");
+  var empty=document.getElementById("rate");
+  if(!list.length){
+    wrap.style.display="none";empty.style.display="block";return;
+  }
+  wrap.style.display="block";empty.style.display="none";
+  tb.innerHTML=list.map(function(item,i){
+    return "<tr>"
+      +"<td class='tm'>"+(i+1)+(i===0?" \u{1F947}":i===1?" \u{1F948}":i===2?" \u{1F949}":"")+"</td>"
+      +"<td class='tb2'>"+item.key+"</td>"
+      +"<td style='text-align:right;"+MN+"'>"+item.count+"</td>"
+      +"<td style='text-align:right;"+MN+"'>"+item.netto.toLocaleString()+"</td>"
+      +"<td class='tm' style='font-size:12px'>"+fd(item.last)+"</td>"
+      +"</tr>";
+  }).join("");
+}
+
+/* ══ QARZDORLAR ══ Mashina raqami bo'yicha guruhlab, faqat "qarz" deb belgilangan yozuvlarni ko'rsatadi */
+function renderDebts(){
+  var g={};
+  R.forEach(function(r){
+    if(!r.qarz)return;
+    var key=(r.m||"").trim();
+    if(!key)return;
+    if(!g[key])g[key]={key:key,ism:r.ism||"",count:0,netto:0,last:r.v};
+    g[key].count+=1;
+    g[key].netto+=r.n;
+    if(r.v>g[key].last){g[key].last=r.v;if(r.ism)g[key].ism=r.ism;}
+  });
+  var list=Object.keys(g).map(function(k){return g[k];});
+  list.sort(function(a,b){return b.netto-a.netto;});
+  var tb=document.getElementById("dbtb");
+  var wrap=document.getElementById("dbtw");
+  var empty=document.getElementById("dbte");
+  if(!list.length){
+    wrap.style.display="none";empty.style.display="block";return;
+  }
+  wrap.style.display="block";empty.style.display="none";
+  tb.innerHTML=list.map(function(item,i){
+    return "<tr>"
+      +"<td class='tm'>"+(i+1)+"</td>"
+      +"<td class='tb2'>"+item.key+"</td>"
+      +"<td class='tm'>"+(item.ism||"&#8212;")+"</td>"
+      +"<td style='text-align:right;"+MN+"'>"+item.count+"</td>"
+      +"<td style='text-align:right;"+MN+";color:var(--rd);font-weight:700'>"+item.netto.toLocaleString()+"</td>"
+      +"<td class='tm' style='font-size:12px'>"+fd(item.last)+"</td>"
+      +"<td><button class='sm' onclick=\"clearDebt('"+item.key.replace(/'/g,"\\'")+"')\" style='background:var(--gr);color:#fff;border-color:var(--gr);font-weight:700'>To'landi</button></td>"
+      +"</tr>";
+  }).join("");
+}
+
+/* Shu mashinaning barcha "qarz" yozuvlarini "naqt"ga o'tkazadi (qarz yopilganda) */
+function clearDebt(mashina){
+  if(!confirm("\""+mashina+"\" mashinasining barcha qarzlarini \"To'landi\" deb belgilaymizmi?"))return;
+  var n=0;
+  R.forEach(function(r){
+    if(r.m===mashina&&r.qarz){r.qarz=false;n++;}
+  });
+  persistR();
+  render();
+  renderDebts();
+  toast(n+" ta qarz yozuvi \"To'landi\" deb belgilandi \u2713");
+}
+
+/* Ctrl+Enter => saqlash */
+document.addEventListener("keydown",function(e){
+  if(e.key==="Enter"&&e.ctrlKey)saveR();
+});
+</script>
+</body>
+</html>
